@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="nb">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>2MPA Medieproduksjon – Haugaland vgs</title>
+<style>
+  :root{--amber:#C97A0C;--amber-l:#FFF3DF;--ink:#1b1b1b;--muted:#5b5b5b;--line:#e2d9c8;--bg:#ffffff}
+  *{box-sizing:border-box}
+  body{margin:0;font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--ink);background:var(--bg);line-height:1.5}
+  header{background:#1b1b1b;color:#fff;border-bottom:6px solid var(--amber)}
+  .wrap{max-width:1000px;margin:0 auto;padding:0 16px}
+  .hero{padding:42px 0 36px;display:flex;align-items:center;gap:18px;flex-wrap:wrap}
+  .rec{display:inline-flex;align-items:center;gap:8px;font:700 .85rem/1 ui-monospace,monospace;letter-spacing:.08em;color:#fff}
+  .rec i{width:12px;height:12px;border-radius:50%;background:#e02424;display:inline-block;animation:bl 1.2s steps(2) infinite}
+  @keyframes bl{50%{opacity:.2}}
+  h1{font-size:2.3rem;margin:6px 0 4px;line-height:1.15}
+  .lead{margin:0;color:#e6dccb;font-size:1.05rem}
+  main{padding:30px 0 50px}
+  h2{font-size:1.25rem;margin:0 0 14px}
+  .cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:16px}
+  a.card{display:block;border:2px solid var(--line);border-radius:12px;padding:18px;text-decoration:none;color:var(--ink);background:#fff;transition:border-color .15s,transform .15s}
+  a.card:hover{border-color:var(--amber);transform:translateY(-2px)}
+  a.card:focus-visible{outline:3px solid #1b1b1b;outline-offset:3px}
+  .tag{display:inline-block;background:var(--amber-l);color:var(--amber);font-weight:700;font-size:.78rem;padding:3px 10px;border-radius:999px;margin-bottom:8px;text-transform:uppercase;letter-spacing:.05em}
+  .card h3{margin:0 0 6px;font-size:1.25rem}
+  .card p{margin:0 0 12px;color:var(--muted);font-size:.95rem}
+  .go{color:var(--amber);font-weight:700}
+  .soon{margin-top:26px;background:var(--amber-l);border-left:5px solid var(--amber);border-radius:6px;padding:12px 14px;font-size:.95rem}
+  footer{border-top:1px solid var(--line);color:var(--muted);font-size:.85rem;padding:18px 0 30px}
+  @media(prefers-reduced-motion:reduce){.rec i{animation:none}a.card{transition:none}}
+  @media(max-width:560px){h1{font-size:1.8rem}}
+</style>
+</head>
+<body>
+<header>
+  <div class="wrap hero">
+    <div>
+      <span class="rec"><i></i>REC</span>
+      <h1>2MPA Medieproduksjon</h1>
+      <p class="lead">VG2 Medieproduksjon · Haugaland videregående skole · Skoleåret 2026–27</p>
+    </div>
+  </div>
+</header>
+
+<main class="wrap">
+  <h2>Læremateriell</h2>
+  <div class="cards">
+    <a class="card" href="kamerateknikker/index.html">
+      <span class="tag">Interaktiv</span>
+      <h3>Kamerateknikker</h3>
+      <p>Pan, tilt, dolly og zoom. Spill av, dra i glidebryteren og se forskjellen med egne øyne.</p>
+      <span class="go">Åpne guiden →</span>
+    </a>
+  </div>
+
+  <p class="soon">Her kommer mer fagstoff utover skoleåret.</p>
+</main>
+
+<footer>
+  <div class="wrap">2MPA · VG2 Medieproduksjon · Haugaland videregående skole</div>
+</footer>
+</body>
+</html>
