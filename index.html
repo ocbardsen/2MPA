@@ -1,0 +1,369 @@
+<!doctype html>
+<html lang="nb">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Kamerateknikker – interaktiv guide</title>
+<style>
+  :root{
+    --amber:#C97A0C; --amber-l:#FFF3DF; --ink:#1b1b1b; --muted:#5b5b5b; --line:#e2d9c8; --bg:#ffffff;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--ink);background:var(--bg);line-height:1.5}
+  .wrap{max-width:1000px;margin:0 auto;padding:20px 16px 48px}
+  h1{font-size:1.7rem;margin:0 0 4px}
+  .sub{color:var(--muted);margin:0 0 18px}
+  .tabs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}
+  .tab{border:2px solid var(--amber);background:#fff;color:var(--ink);padding:9px 16px;border-radius:999px;font-size:1rem;font-weight:600;cursor:pointer}
+  .tab[aria-selected="true"]{background:var(--amber);color:#fff}
+  .tab:focus-visible,button:focus-visible,input:focus-visible{outline:3px solid #1b1b1b;outline-offset:2px}
+  .grid{display:grid;grid-template-columns:minmax(0,1.7fr) minmax(0,1fr);gap:18px}
+  @media(max-width:820px){.grid{grid-template-columns:1fr}}
+  .screen{position:relative;background:#000;border-radius:10px;overflow:hidden;aspect-ratio:16/9;border:3px solid #222}
+  .screen svg{display:block;width:100%;height:100%}
+  .rec{position:absolute;top:10px;left:12px;color:#fff;font:600 13px/1 ui-monospace,monospace;display:flex;align-items:center;gap:6px;text-shadow:0 1px 2px #000}
+  .rec i{width:10px;height:10px;border-radius:50%;background:#e02424;display:inline-block}
+  .rec.on i{animation:bl 1s steps(2) infinite}
+  @keyframes bl{50%{opacity:.15}}
+  .tc{position:absolute;top:10px;right:12px;color:#fff;font:600 13px/1 ui-monospace,monospace;text-shadow:0 1px 2px #000}
+  .phase{position:absolute;bottom:10px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,.6);color:#fff;padding:4px 12px;border-radius:999px;font-size:.85rem;font-weight:600;white-space:nowrap}
+  .screen svg.grid3{position:absolute;inset:0;pointer-events:none;display:none}
+  .screen svg.grid3.on{display:block}
+  .controls{margin-top:12px;background:var(--amber-l);border:1px solid var(--line);border-radius:10px;padding:12px}
+  .row{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+  button.btn{background:var(--amber);color:#fff;border:0;border-radius:8px;padding:9px 16px;font-size:1rem;font-weight:700;cursor:pointer;min-width:96px}
+  button.ghost{background:#fff;color:var(--ink);border:2px solid var(--amber)}
+  input[type=range]{flex:1;min-width:150px;accent-color:var(--amber);height:28px}
+  .bar{display:flex;height:22px;border-radius:6px;overflow:hidden;margin-top:10px;border:1px solid var(--line);font-size:.75rem;font-weight:700}
+  .bar div{flex:1;display:flex;align-items:center;justify-content:center;background:#fff;color:var(--muted);transition:background .15s,color .15s}
+  .bar div.act{background:var(--amber);color:#fff}
+  label.chk{display:flex;align-items:center;gap:6px;font-size:.92rem;cursor:pointer}
+  .card{border:1px solid var(--line);border-radius:10px;padding:14px 16px;background:#fff}
+  .card h2{margin:0 0 6px;font-size:1.3rem;color:var(--amber)}
+  .card h3{margin:14px 0 2px;font-size:.8rem;text-transform:uppercase;letter-spacing:.06em;color:var(--muted)}
+  .card p{margin:0}
+  .topview{margin-top:14px;border:1px solid var(--line);border-radius:10px;padding:8px 10px;background:#fff}
+  .topview small{display:block;color:var(--muted);font-weight:600;margin-bottom:2px}
+  .topview svg{width:100%;height:auto;display:block}
+  .tip{margin-top:14px;background:var(--amber-l);border-left:5px solid var(--amber);border-radius:6px;padding:10px 12px;font-size:.95rem}
+  .foot{margin-top:26px;color:var(--muted);font-size:.85rem}
+  .vett{margin-top:24px}
+  .vett h2{font-size:1.2rem;margin:0 0 8px}
+  .vett ul{margin:0;padding:0;list-style:none;display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:8px}
+  .vett li{border:1px solid var(--line);border-radius:8px;padding:8px 10px;background:#fff;font-size:.93rem}
+  .vett li b{color:var(--amber)}
+  @media(prefers-reduced-motion:reduce){.rec.on i{animation:none}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Kamerateknikker – interaktiv guide</h1>
+  <p class="sub">VG2 Medieproduksjon · Velg en teknikk, trykk <b>Spill av</b>, eller dra i glidebryteren og styr kameraet selv.</p>
+
+  <div class="tabs" role="tablist" aria-label="Velg kamerateknikk" id="tabs"></div>
+
+  <div class="grid">
+    <div>
+      <div class="screen" id="screen">
+        <svg id="view" viewBox="0 0 640 360" preserveAspectRatio="xMidYMid slice" role="img" aria-label="Kamerabildet slik det ser ut gjennom søkeren">
+          <defs>
+            <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0" stop-color="#6fb1ea"/><stop offset=".7" stop-color="#cfe8fa"/><stop offset="1" stop-color="#fbe9c9"/>
+            </linearGradient>
+            <clipPath id="clip"><rect width="640" height="360"/></clipPath>
+          </defs>
+          <g clip-path="url(#clip)">
+            <g id="L0"></g><g id="L1"></g><g id="L2"></g><g id="L3"></g>
+          </g>
+        </svg>
+        <div class="rec" id="rec"><i></i>REC</div>
+        <div class="tc" id="tc">00:00</div>
+        <div class="phase" id="phaseLbl">Stå i ro</div>
+        <svg class="grid3" id="grid3" viewBox="0 0 640 360" preserveAspectRatio="none">
+          <g stroke="rgba(255,255,255,.55)" stroke-width="1"><line x1="213.3" y1="0" x2="213.3" y2="360"/><line x1="426.7" y1="0" x2="426.7" y2="360"/><line x1="0" y1="120" x2="640" y2="120"/><line x1="0" y1="240" x2="640" y2="240"/></g>
+        </svg>
+      </div>
+
+      <div class="controls">
+        <div class="row">
+          <button class="btn" id="play">▶ Spill av</button>
+          <button class="btn ghost" id="reset">Tilbake</button>
+          <input type="range" id="scrub" min="0" max="1500" value="0" aria-label="Tid i opptaket">
+        </div>
+        <div class="bar" id="bar" aria-hidden="true"><div id="b0">5 s · stå i ro</div><div id="b1">5 s · bevegelse</div><div id="b2">5 s · stå i ro</div></div>
+        <div class="row" style="margin-top:10px">
+          <label class="chk"><input type="checkbox" id="thirds"> Vis tredjedelsrutenett</label>
+          <label class="chk">Fart
+            <select id="speed" aria-label="Avspillingsfart">
+              <option value="1">Normal</option><option value="0.5">Halv</option><option value="3">Rask (3×)</option>
+            </select>
+          </label>
+        </div>
+      </div>
+    </div>
+
+    <div>
+      <div class="card" id="info"></div>
+      <div class="topview">
+        <small>Sett ovenfra / fra siden – hva gjør kameraet?</small>
+        <svg id="top" viewBox="0 0 240 170" role="img" aria-label="Skjematisk tegning av kameraets bevegelse"></svg>
+      </div>
+      <div class="tip" id="tip"></div>
+    </div>
+  </div>
+
+  <div class="vett">
+    <h2>Kameravett – husk dette</h2>
+    <ul>
+      <li><b>5-5-5:</b> hold 5 sek i ro før og etter bevegelsen, så har klipperen noe å jobbe med.</li>
+      <li><b>Sakte og jevnt:</b> start og stopp mykt. Rykk og rusk ødelegger opptaket.</li>
+      <li><b>Ha en grunn:</b> beveg kameraet bare når bevegelsen forteller noe.</li>
+      <li><b>Stativ:</b> bruk stativ til pan og tilt, og lås alle akser du ikke skal bruke.</li>
+      <li><b>Aksen:</b> hold kameraene på samme side av den usynlige linjen mellom personene.</li>
+    </ul>
+  </div>
+  <p class="foot">Illustrasjonene i guiden er forenklede og tegnet for undervisning. Se heftet «Kamerateknikker» for full forklaring, akseregelen og kilder.</p>
+</div>
+
+<script>
+(function(){
+  const NS = "http://www.w3.org/2000/svg";
+  const $ = id => document.getElementById(id);
+
+  /* ---------- Scene (world 1400 x 900) ---------- */
+  const L = [ $("L0"), $("L1"), $("L2"), $("L3") ];
+  const depth = [4000, 700, 300, 130];        // sky, fjell, midtgrunn, forgrunn
+  L[0].innerHTML = `
+    <rect x="-600" y="-400" width="2600" height="1500" fill="url(#sky)"/>
+    <circle cx="1120" cy="170" r="54" fill="#ffe28a"/>
+    <g fill="#fff" opacity=".92">
+      <ellipse cx="260" cy="150" rx="90" ry="26"/><ellipse cx="320" cy="132" rx="60" ry="24"/>
+      <ellipse cx="640" cy="330" rx="100" ry="26"/><ellipse cx="700" cy="312" rx="56" ry="22"/>
+      <ellipse cx="900" cy="90" rx="80" ry="22"/><ellipse cx="1300" cy="380" rx="90" ry="24"/>
+    </g>`;
+  L[1].innerHTML = `
+    <polygon points="-600,820 -600,650 -200,560 200,700 560,540 900,690 1180,580 1500,700 2000,600 2000,820" fill="#8aa0b8"/>
+    <polygon points="-600,820 -600,720 -100,660 300,750 700,650 1100,740 1500,670 2000,740 2000,820" fill="#6e8aa3"/>`;
+  L[2].innerHTML = `
+    <rect x="-600" y="780" width="2600" height="800" fill="#6aa84f"/>
+    <!-- hus -->
+    <rect x="110" y="690" width="170" height="100" fill="#e9d3a8"/>
+    <polygon points="95,690 195,620 295,690" fill="#a4432f"/>
+    <rect x="180" y="730" width="34" height="60" fill="#6b4a2b"/>
+    <rect x="128" y="712" width="28" height="26" fill="#9fd0ee"/><rect x="236" y="712" width="28" height="26" fill="#9fd0ee"/>
+    <!-- trær -->
+    <rect x="474" y="700" width="16" height="90" fill="#6b4a2b"/><circle cx="482" cy="670" r="52" fill="#3f8a3a"/>
+    <rect x="924" y="710" width="14" height="80" fill="#6b4a2b"/><circle cx="931" cy="685" r="44" fill="#3f8a3a"/>
+    <!-- fyrtårn -->
+    <polygon points="662,790 738,790 724,180 676,180" fill="#f5f5f5"/>
+    <polygon points="666,700 734,700 731,610 669,610" fill="#c0392b"/>
+    <polygon points="672,520 728,520 725,430 675,430" fill="#c0392b"/>
+    <polygon points="677,340 723,340 721,255 679,255" fill="#c0392b"/>
+    <rect x="660" y="165" width="80" height="16" fill="#333"/>
+    <rect x="678" y="120" width="44" height="46" fill="#ffe28a" stroke="#333" stroke-width="4"/>
+    <polygon points="672,120 728,120 700,86" fill="#333"/>
+    <!-- fugl -->
+    <path d="M770 110 q12 -14 24 0 q12 -14 24 0" fill="none" stroke="#222" stroke-width="3"/>
+    <!-- person -->
+    <circle cx="1150" cy="708" r="17" fill="#f1c9a0"/>
+    <rect x="1132" y="726" width="36" height="64" rx="10" fill="#2b6cb0"/>
+    <rect x="1134" y="788" width="12" height="4" fill="#222"/><rect x="1154" y="788" width="12" height="4" fill="#222"/>`;
+  L[3].innerHTML = `
+    <g fill="#8b5a2b">
+      ${[...Array(24)].map((_,i)=>`<rect x="${-100+i*80}" y="830" width="14" height="80"/>`).join("")}
+      <rect x="-200" y="846" width="2000" height="10"/><rect x="-200" y="876" width="2000" height="10"/>
+    </g>
+    <g>
+      <circle cx="560" cy="826" r="10" fill="#e84a5f"/><circle cx="584" cy="834" r="10" fill="#ffd23f"/>
+      <circle cx="820" cy="828" r="10" fill="#e84a5f"/><circle cx="846" cy="836" r="10" fill="#ffd23f"/>
+      <circle cx="120" cy="830" r="10" fill="#ffd23f"/><circle cx="1290" cy="830" r="10" fill="#e84a5f"/>
+    </g>
+    <ellipse cx="240" cy="860" rx="70" ry="40" fill="#2f7d32"/><ellipse cx="1240" cy="864" rx="80" ry="44" fill="#2f7d32"/>`;
+
+  /* ---------- Techniques ---------- */
+  const T = {
+    pan: {
+      name:"Panorering (pan)",
+      what:"Kameraet dreies sideveis, til venstre eller høyre, mens det står på samme sted (på stativet).",
+      how:"Bare kameraet svinger. Alt i bildet flytter seg like mye, både forgrunn og bakgrunn.",
+      use:"Vise en stor plass, følge en person som går, eller flytte blikket fra ett objekt til et annet.",
+      tip:"Test: la glidebryteren stå i bevegelsesdelen. Se at gjerdet nederst og fjellene bak flytter seg like fort – det er kjennetegnet på en pan.",
+      cam(p){return {cx:320+760*p, cy:720, s:[1,1,1,1]}}
+    },
+    tilt: {
+      name:"Tilting",
+      what:"Kameraet vippes opp eller ned, mens det står på samme sted.",
+      how:"Som å nikke med hodet. Bildet glir loddrett, og perspektivet endres ikke.",
+      use:"Vise noe høyt (bygning, tre, fyrtårn), eller avsløre en person fra føttene og opp.",
+      tip:"Tilt oppover viser at noe er stort eller mektig. Bruk stivt stativhode så bevegelsen blir jevn.",
+      cam(p){return {cx:700, cy:720-540*p, s:[1,1,1,1]}}
+    },
+    dolly: {
+      name:"Dolly / kjøring (tracking)",
+      what:"Selve kameraet flyttes fysisk – mot motivet, bort fra det, eller sidelengs – på dolly, skinner eller gimbal.",
+      how:"Forgrunnen vokser raskere enn bakgrunnen. Det gir dybde (parallakse) og gjør at du «kommer inn» i scenen.",
+      use:"Trekke seherne inn i en scene, følge en person, eller skape en følelse av å være til stede.",
+      tip:"Legg merke til blomstene og gjerdet: de blir mye større og flytter seg utover, mens fjellene nesten står stille. Slik ser du forskjellen på dolly og zoom.",
+      cam(p){const d=75*p;return {cx:700, cy:540, s:depth.map(z=>z/(z-d))}}
+    },
+    zoom: {
+      name:"Zoom",
+      what:"Du endrer brennvidden på objektivet. Bildet forstørres eller forminskes uten at kameraet flytter seg.",
+      how:"Alt i bildet forstørres like mye – forgrunn og bakgrunn i samme forhold. Ingen ny dybde.",
+      use:"Raskt komme nærmere eller vise mer, uten å flytte kameraet. Bruk med måte – ofte ser det billigere ut enn dolly.",
+      tip:"Sammenlign med dolly: her holder alt forholdet til hverandre. Blomstene og fjellene vokser like mye.",
+      cam(p){const k=1+1.2*p;return {cx:700, cy:540, s:[k,k,k,k]}}
+    }
+  };
+  const order = ["pan","tilt","dolly","zoom"];
+  let mode = "pan";
+
+  /* ---------- Tabs ---------- */
+  const tabs = $("tabs");
+  order.forEach(k=>{
+    const b = document.createElement("button");
+    b.className="tab"; b.role="tab"; b.dataset.k=k; b.textContent=T[k].name.split(" (")[0].split(" /")[0];
+    b.onclick=()=>{mode=k; setT(0); stop(); renderAll();};
+    tabs.appendChild(b);
+  });
+
+  /* ---------- Timeline ---------- */
+  const TOTAL = 15;             // sek
+  let t = 0, playing = false, last = 0;
+  const ease = x => x<.5 ? 4*x*x*x : 1-Math.pow(-2*x+2,3)/2;
+  function progress(){
+    if(t<5) return 0;
+    if(t>=10) return 1;
+    return ease((t-5)/5);
+  }
+  function setT(v){ t=Math.max(0,Math.min(TOTAL,v)); render(); }
+
+  function render(){
+    const c = T[mode].cam(progress());
+    for(let i=0;i<4;i++){
+      L[i].setAttribute("transform",`translate(320 180) scale(${c.s[i]}) translate(${-c.cx} ${-c.cy})`);
+    }
+    const s = Math.floor(t);
+    $("tc").textContent = "00:"+String(s).padStart(2,"0");
+    $("scrub").value = Math.round(t*100);
+    const ph = t<5?0:(t<10?1:2);
+    ["b0","b1","b2"].forEach((id,i)=>$(id).classList.toggle("act",i===ph));
+    $("phaseLbl").textContent = ph===1 ? "Bevegelse: "+T[mode].name.split(" (")[0].split(" /")[0].toLowerCase() : "Stå i ro";
+    $("rec").classList.toggle("on",playing);
+    drawTop();
+  }
+
+  function frame(now){
+    if(!playing) return;
+    const dt=(now-last)/1000; last=now;
+    t += dt*parseFloat($("speed").value);
+    if(t>=TOTAL){ t=TOTAL; render(); stop(); return; }
+    render(); requestAnimationFrame(frame);
+  }
+  function play(){
+    if(t>=TOTAL) t=0;
+    playing=true; last=performance.now(); $("play").textContent="❚❚ Pause"; requestAnimationFrame(frame);
+  }
+  function stop(){ playing=false; $("play").textContent = t>=TOTAL ? "↻ Spill igjen" : "▶ Spill av"; $("rec").classList.remove("on"); }
+  $("play").onclick=()=> playing ? (stop(),render()) : play();
+  $("reset").onclick=()=>{stop();setT(0);};
+  $("scrub").oninput=e=>{ if(playing) stop(); setT(e.target.value/100); $("play").textContent="▶ Spill av"; };
+  $("thirds").onchange=e=>$("grid3").classList.toggle("on",e.target.checked);
+  document.addEventListener("keydown",e=>{
+    if(e.target.tagName==="INPUT"||e.target.tagName==="SELECT") return;
+    if(e.code==="Space"){e.preventDefault(); $("play").click();}
+    if(e.key==="ArrowRight"){const i=(order.indexOf(mode)+1)%4; tabs.children[i].click();}
+    if(e.key==="ArrowLeft"){const i=(order.indexOf(mode)+3)%4; tabs.children[i].click();}
+  });
+
+  /* ---------- Top view diagram ---------- */
+  const top = $("top");
+  function el(n,a,p){const e=document.createElementNS(NS,n);for(const k in a)e.setAttribute(k,a[k]);(p||top).appendChild(e);return e;}
+  function wedge(x,y,ang,half,len,col){
+    const a1=(ang-half)*Math.PI/180,a2=(ang+half)*Math.PI/180;
+    return `M${x} ${y} L${x+Math.sin(a1)*len} ${y-Math.cos(a1)*len} L${x+Math.sin(a2)*len} ${y-Math.cos(a2)*len} Z`;
+  }
+  function cam(x,y,ang){ // liten kamerasymbol
+    const g=el("g",{transform:`translate(${x} ${y}) rotate(${ang})`});
+    el("rect",{x:-9,y:-6,width:18,height:14,rx:3,fill:"#222"},g);
+    el("rect",{x:-4,y:-11,width:8,height:6,rx:1,fill:"#222"},g);
+    return g;
+  }
+  function houseTop(x,y){ // hus sett ovenfra: to takflater
+    el("rect",{x:x-15,y:y-11,width:15,height:22,fill:"#a4432f",stroke:"#6e2b1d","stroke-width":1});
+    el("rect",{x:x,y:y-11,width:15,height:22,fill:"#c0604a",stroke:"#6e2b1d","stroke-width":1});
+    el("text",{x:x,y:y+24,"text-anchor":"middle","font-size":9,fill:"#5b5b5b"}).textContent="Hus";
+  }
+  function treeTop(x,y){
+    el("circle",{cx:x,cy:y,r:8,fill:"#3f8a3a",stroke:"#2c6428"});
+  }
+  function personTop(x,y){ // person sett ovenfra: skuldre + hode
+    el("ellipse",{cx:x,cy:y,rx:11,ry:6,fill:"#2b6cb0"});
+    el("circle",{cx:x,cy:y,r:5,fill:"#f1c9a0",stroke:"#8a6a4a","stroke-width":.8});
+    el("text",{x:x,y:y+24,"text-anchor":"middle","font-size":9,fill:"#5b5b5b"}).textContent="Person";
+  }
+  function lighthouseTop(x,y,small){ // fyrtårnet sett rett ovenfra
+    el("circle",{cx:x,cy:y,r:13,fill:"#f5f5f5",stroke:"#333","stroke-width":1.5});
+    el("circle",{cx:x,cy:y,r:9,fill:"#c0392b"});
+    el("circle",{cx:x,cy:y,r:4,fill:"#ffe28a",stroke:"#333","stroke-width":1});
+    if(small) el("text",{x:x,y:y+24,"text-anchor":"middle","font-size":9,fill:"#5b5b5b"}).textContent="Fyrtårn"; else el("text",{x:x+20,y:y+4,"font-size":11,fill:"#5b5b5b"}).textContent="Fyrtårnet";
+  }
+  function drawTop(){
+    top.innerHTML="";
+    const p=progress();
+    el("rect",{x:0,y:0,width:240,height:170,fill:"#f6f1e7"});
+    const fov="rgba(201,122,12,.28)", fovS="#C97A0C";
+    if(mode==="pan"){
+      // sett ovenfra, kamera fast, svinger
+      houseTop(40,38); treeTop(80,44); lighthouseTop(120,32,true); treeTop(160,44); personTop(200,40);
+      const ang=-35+70*p;
+      el("path",{d:wedge(120,140,ang,22,110),fill:fov,stroke:fovS,"stroke-width":1.5});
+      cam(120,142,ang);
+      el("text",{x:120,y:166,"text-anchor":"middle","font-size":11,fill:"#5b5b5b"}).textContent="Kameraet svinger – står på samme sted";
+    } else if(mode==="tilt"){
+      // sett fra siden
+      el("rect",{x:170,y:30,width:26,height:110,fill:"#c0392b"}); el("rect",{x:150,y:138,width:80,height:10,fill:"#6aa84f"});
+      const ang=60-p*(60+10); // fra ned mot opp
+      // peker mot høyre (90 = høyre). bruker rotasjon
+      const a=(60-95*p);      // 60 (mot høyre-ned) → -35 (mot høyre-opp), målt fra vannrett
+      const cx=50, cy=120;
+      const g=el("g",{transform:`rotate(${a} ${cx} ${cy})`});
+      el("path",{d:`M${cx} ${cy} L${cx+120} ${cy-26} L${cx+120} ${cy+26} Z`,fill:fov,stroke:fovS,"stroke-width":1.5},g);
+      const c=el("g",{transform:`translate(${cx} ${cy})`},g);
+      el("rect",{x:-14,y:-8,width:20,height:16,rx:3,fill:"#222"},c);
+      el("rect",{x:6,y:-5,width:8,height:10,rx:1,fill:"#222"},c);
+      el("path",{d:"M50 122 l-14 30 M50 122 l14 30",stroke:"#222","stroke-width":2});
+      el("text",{x:120,y:166,"text-anchor":"middle","font-size":11,fill:"#5b5b5b"}).textContent="Kameraet vipper opp/ned – sett fra siden";
+    } else if(mode==="dolly"){
+      lighthouseTop(120,30);
+      const y=150-80*p;
+      el("path",{d:wedge(120,y,0,22,110),fill:fov,stroke:fovS,"stroke-width":1.5});
+      cam(120,y+2,0);
+      el("line",{x1:120,y1:150,x2:120,y2:70,stroke:"#999","stroke-dasharray":"3 3"});
+      el("text",{x:120,y:166,"text-anchor":"middle","font-size":11,fill:"#5b5b5b"}).textContent="Kameraet flytter seg mot motivet";
+    } else {
+      lighthouseTop(120,30);
+      const half=30-17*p;
+      el("path",{d:wedge(120,140,0,half,115),fill:fov,stroke:fovS,"stroke-width":1.5});
+      cam(120,142,0);
+      el("text",{x:120,y:166,"text-anchor":"middle","font-size":11,fill:"#5b5b5b"}).textContent="Kameraet står stille – synsfeltet smalner";
+    }
+  }
+
+  /* ---------- Info ---------- */
+  function renderAll(){
+    const d=T[mode];
+    [...tabs.children].forEach(b=>b.setAttribute("aria-selected",b.dataset.k===mode));
+    $("info").innerHTML=`<h2>${d.name}</h2>
+      <h3>Hva skjer?</h3><p>${d.what}</p>
+      <h3>Hvordan ser det ut?</h3><p>${d.how}</p>
+      <h3>Bruk den til</h3><p>${d.use}</p>`;
+    $("tip").innerHTML="<b>Prøv selv:</b> "+d.tip;
+    $("play").textContent="▶ Spill av";
+    render();
+  }
+  renderAll();
+})();
+</script>
+</body>
+</html>
