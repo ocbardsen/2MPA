@@ -1,0 +1,858 @@
+<!doctype html>
+<html lang="nb">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Flerkamera – interaktiv presentasjon og øvelse</title>
+<style>
+  :root{
+    --amber:#C97A0C; --amber-l:#FFF3DF; --ink:#1b1b1b; --muted:#5b5b5b; --line:#e2d9c8; --bg:#ffffff;
+    --pgm:#d62828; --pvw:#1f9d55; --navy:#1d2a44;
+  }
+  *{box-sizing:border-box}
+  html,body{height:100%}
+  body{margin:0;font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--ink);background:var(--bg);line-height:1.5;display:flex;flex-direction:column;font-size:18px}
+  button{font:inherit;cursor:pointer}
+  button:focus-visible,input:focus-visible,select:focus-visible,[tabindex]:focus-visible,a:focus-visible{outline:3px solid #1b1b1b;outline-offset:2px}
+
+  header.top{display:flex;align-items:center;gap:12px;padding:8px 18px;border-bottom:3px solid var(--amber);background:#fff}
+  header.top b{color:var(--amber);font-size:1.05rem}
+  header.top span{color:var(--muted);font-size:.95rem}
+  header.top .sp{flex:1}
+  .iconbtn{border:2px solid var(--amber);background:#fff;border-radius:8px;padding:6px 12px;font-weight:700;color:var(--ink);text-decoration:none}
+
+  main{flex:1;overflow:auto;position:relative}
+  .slide{display:none;max-width:1180px;margin:0 auto;padding:18px 22px 28px}
+  .slide.on{display:block}
+  .slide h1{font-size:2.3rem;margin:0 0 6px;line-height:1.15}
+  .slide h2{font-size:1.9rem;margin:0 0 4px;line-height:1.2}
+  .kicker{color:var(--amber);font-weight:800;letter-spacing:.08em;text-transform:uppercase;font-size:.85rem}
+  .lead{color:var(--muted);margin:0 0 14px;font-size:1.1rem}
+
+  .cols{display:grid;grid-template-columns:minmax(0,1.35fr) minmax(0,1fr);gap:20px;align-items:start}
+  .cols.even{grid-template-columns:1fr 1fr}
+  @media(max-width:900px){.cols,.cols.even{grid-template-columns:1fr}}
+  .card{border:1px solid var(--line);border-radius:12px;padding:14px 18px;background:#fff}
+  .card h3{margin:0 0 6px;font-size:1.3rem;color:var(--amber)}
+  .card p{margin:0 0 8px}
+  .card ul{margin:0;padding-left:1.2em}
+  .card li{margin:3px 0}
+  .tip{margin-top:12px;background:var(--amber-l);border-left:6px solid var(--amber);border-radius:6px;padding:10px 14px;font-size:1rem}
+  .btn{background:var(--amber);color:#fff;border:0;border-radius:10px;padding:11px 20px;font-weight:800;min-height:48px}
+  .btn.ghost{background:#fff;color:var(--ink);border:2px solid var(--amber)}
+  .btn[disabled]{opacity:.45;cursor:default}
+  .row{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+
+  /* tittel */
+  .hero{display:grid;grid-template-columns:1.1fr 1fr;gap:26px;align-items:center;min-height:60vh}
+  @media(max-width:900px){.hero{grid-template-columns:1fr}}
+  .hero h1{font-size:3rem}
+  .hero .tags{display:flex;gap:8px;flex-wrap:wrap;margin:14px 0 22px}
+  .tag{background:var(--amber-l);border:1px solid var(--line);border-radius:999px;padding:4px 12px;font-weight:700;font-size:.9rem}
+  .frame{position:relative;background:#000;border-radius:10px;overflow:hidden;aspect-ratio:16/9;border:3px solid #222}
+  .frame svg{display:block;width:100%;height:100%}
+  .frame .lab{position:absolute;left:8px;top:6px;color:#fff;font:700 13px/1 ui-monospace,monospace;background:rgba(0,0,0,.55);padding:4px 7px;border-radius:5px}
+
+  /* sammenligning */
+  .vs svg{width:100%;height:auto;display:block}
+
+  /* studiokart */
+  .map{background:#f6f1e7;border:1px solid var(--line);border-radius:12px;padding:6px}
+  .map svg{width:100%;height:auto;display:block}
+  .hot{cursor:pointer}
+  .hot .shape{transition:fill .15s, stroke-width .15s}
+  .hot:hover .shape,.hot.sel .shape{stroke-width:4;stroke:#1b1b1b}
+  .hot text{pointer-events:none;font-weight:700}
+  .roleinfo h3{font-size:1.5rem}
+  .roleinfo .say{font-style:italic;background:var(--amber-l);padding:6px 10px;border-radius:6px;margin:6px 0}
+
+  /* signalvei */
+  .chain{display:flex;gap:6px;align-items:stretch;flex-wrap:wrap;margin:6px 0 12px}
+  .node{flex:1;min-width:120px;border:3px solid var(--amber);background:#fff;border-radius:12px;padding:10px 8px;text-align:center;font-weight:800}
+  .node small{display:block;font-weight:500;color:var(--muted);margin-top:2px}
+  .node.sel{background:var(--amber);color:#fff}
+  .node.sel small{color:#fff}
+  .arrow{align-self:center;font-size:1.6rem;color:var(--amber);font-weight:900}
+  input[type=range]{width:100%;accent-color:var(--amber);height:34px}
+  .verdict{font-weight:800;padding:8px 12px;border-radius:8px;background:var(--amber-l);border:1px solid var(--line)}
+
+  /* dialog */
+  .chat{display:flex;flex-direction:column;gap:8px;min-height:230px}
+  .bubble{max-width:88%;padding:8px 14px;border-radius:14px;background:#eef1f6;border:1px solid #d7dde8;animation:pop .25s ease}
+  .bubble b{display:block;font-size:.8rem;color:var(--muted);text-transform:uppercase;letter-spacing:.05em}
+  .bubble.reg{background:var(--amber-l);border-color:#ecd5ad;align-self:flex-start}
+  .bubble.cam{align-self:flex-end}
+  .bubble.mix{align-self:flex-end;background:#e6f4ec;border-color:#bfe0cc}
+  @keyframes pop{from{transform:translateY(6px);opacity:0}to{opacity:1;transform:none}}
+
+  /* quiz */
+  .quiz .q{font-size:1.25rem;font-weight:800;margin:6px 0 10px}
+  .quiz .opt{display:block;width:100%;text-align:left;border:2px solid var(--line);background:#fff;border-radius:10px;padding:11px 14px;margin:7px 0;font-weight:600;min-height:48px}
+  .quiz .opt:hover:not([disabled]){border-color:var(--amber)}
+  .quiz .opt.good{background:#e6f4ec;border-color:var(--pvw)}
+  .quiz .opt.bad{background:#fde8e8;border-color:var(--pgm)}
+  .quiz .why{margin-top:8px;padding:10px 14px;background:var(--amber-l);border-left:6px solid var(--amber);border-radius:6px}
+  .qhead{display:flex;justify-content:space-between;color:var(--muted);font-weight:700;font-size:.95rem}
+  .qbar{height:8px;background:#eee;border-radius:99px;overflow:hidden;margin:4px 0 8px}
+  .qbar i{display:block;height:100%;background:var(--amber);transition:width .25s}
+
+  /* aksen */
+  .axis svg{width:100%;height:auto;display:block}
+  .zone{cursor:pointer}
+  .zone rect{fill:rgba(201,122,12,.10);stroke:var(--amber);stroke-dasharray:6 5;stroke-width:2;transition:fill .15s}
+  .zone:hover rect,.zone:focus rect{fill:rgba(201,122,12,.28)}
+  .cutdemo{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .cutdemo .frame{border-width:4px}
+  .cutdemo .frame.live{border-color:var(--pgm)}
+  .cutdemo .frame.live::after{content:"PGM";position:absolute;right:8px;top:6px;color:#fff;background:var(--pgm);font:800 12px/1 ui-monospace,monospace;padding:4px 7px;border-radius:5px}
+
+  /* bildemikser */
+  .game{display:grid;gap:12px}
+  .regi{display:flex;align-items:center;gap:12px;background:#111;color:#fff;border-radius:10px;padding:10px 16px;min-height:62px}
+  .regi .who{color:#ffb84d;font:800 .85rem ui-monospace,monospace;letter-spacing:.08em}
+  .regi .msg{font-size:1.5rem;font-weight:800;flex:1}
+  .regi .msg.ta{color:#ff6b6b}
+  .regi .msg.sb{color:#ffd166}
+  .screens{display:grid;grid-template-columns:1fr 1fr;gap:12px;align-items:start}
+  .multi .tile .frame{border-width:3px}
+  .multi .tile .lab{display:none}
+  .multi{gap:6px!important}
+  @media(max-width:900px){.screens{grid-template-columns:1fr}}
+  .mon{position:relative}
+  .mon .frame{border-width:5px}
+  .mon.pgm .frame{border-color:var(--pgm)}
+  .mon.pvw .frame{border-color:var(--pvw)}
+  .mon .tag2{position:absolute;right:8px;top:6px;color:#fff;font:800 13px/1 ui-monospace,monospace;padding:4px 8px;border-radius:5px}
+  .mon.pgm .tag2{background:var(--pgm)} .mon.pvw .tag2{background:var(--pvw)}
+  .multi{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+  @keyframes fin{from{opacity:.1}to{opacity:1}}
+  .fading svg{animation:fin .9s ease}
+  .tile{position:relative;border:0;padding:0;background:none;text-align:left}
+  .tile .frame{border-width:5px;border-color:#333}
+  .tile.isPgm .frame{border-color:var(--pgm)}
+  .tile.isPvw .frame{border-color:var(--pvw)}
+  .tile .cn{position:absolute;right:8px;top:6px;font:800 12px/1 ui-monospace,monospace;color:#fff;padding:4px 7px;border-radius:5px;background:#333}
+  .tile.isPgm .cn{background:var(--pgm)} .tile.isPvw .cn{background:var(--pvw)}
+  .mixer{background:#2a2a2e;border-radius:12px;padding:12px 14px;color:#fff;display:flex;gap:16px;align-items:center;flex-wrap:wrap}
+  .mixer .grp{display:flex;gap:8px;align-items:center}
+  .mixer .gl{font:800 .8rem ui-monospace,monospace;color:#bbb;letter-spacing:.06em;margin-right:4px}
+  .mb{width:68px;height:60px;border-radius:8px;border:3px solid #555;background:#3b3b41;color:#fff;font-weight:900;font-size:1.3rem}
+  .mb.pvw{background:var(--pvw);border-color:#6fe39b}
+  .mb.pgm{background:var(--pgm);border-color:#ff8f8f}
+  .mb.cut{width:96px;font-size:1rem!important;background:#fff;color:#111;border-color:#ddd;font-size:1.2rem}
+  .mb.cut:active{transform:scale(.96)}
+  .prog{height:10px;background:#ddd;border-radius:99px;overflow:hidden}
+  .prog i{display:block;height:100%;background:var(--amber);width:0}
+  .lvl{display:flex;gap:10px;flex-wrap:wrap;margin:10px 0}
+  .lvl label{border:2px solid var(--amber);border-radius:10px;padding:8px 14px;font-weight:700;cursor:pointer;background:#fff}
+  .lvl input{accent-color:var(--amber)}
+  .lvl label:has(input:checked){background:var(--amber);color:#fff}
+  .strip{display:flex;height:34px;border-radius:8px;overflow:hidden;border:1px solid var(--line);margin:6px 0}
+  .strip div{display:flex;align-items:center;justify-content:center;font-size:.78rem;font-weight:800;color:#fff;border-right:2px solid #fff;overflow:hidden;white-space:nowrap}
+  .big{font-size:3.4rem;font-weight:900;color:var(--amber);line-height:1}
+  .overlay{position:absolute;inset:0;background:#fff;z-index:5;padding:18px;overflow:auto;border-radius:8px}
+
+  /* sjekkliste */
+  .chk{list-style:none;padding:0;margin:0}
+  .chk li{display:flex;gap:10px;align-items:flex-start;border:1px solid var(--line);border-radius:8px;padding:8px 12px;margin:6px 0;background:#fff;cursor:pointer}
+  .chk li input{width:22px;height:22px;accent-color:var(--amber);margin-top:3px;flex:none}
+  .chk li.done{background:#e6f4ec;border-color:#bfe0cc}
+  table.rot{border-collapse:collapse;width:100%;font-size:.95rem}
+  table.rot th{background:var(--amber);color:#fff;padding:6px 8px;text-align:left}
+  table.rot td{border:1px solid var(--line);padding:6px 8px}
+  table.rot tr:nth-child(even) td{background:#faf7f1}
+
+  .vett{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:10px}
+  .vett li{border:1px solid var(--line);border-radius:10px;padding:12px 14px;background:#fff}
+  .vett li b{color:var(--amber)}
+
+  nav.bottom{display:flex;align-items:center;gap:12px;padding:8px 18px;border-top:1px solid var(--line);background:#fff}
+  nav.bottom .dots{flex:1;display:flex;gap:7px;justify-content:center;flex-wrap:wrap}
+  nav.bottom .dot{width:16px;height:16px;border-radius:50%;border:2px solid var(--amber);background:#fff;padding:0}
+  nav.bottom .dot.on{background:var(--amber)}
+  nav.bottom .dot.seen{background:var(--amber-l)}
+  .cnt{font-weight:800;color:var(--muted);min-width:64px;text-align:center}
+  @media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+
+<header class="top">
+  <a class="iconbtn" href="../index.html">← Forside</a>
+  <b>FLERKAMERA</b><span id="curTitle"></span><div class="sp"></div>
+  <button class="iconbtn" id="fs" aria-label="Fullskjerm">Fullskjerm</button>
+</header>
+
+<main id="main">
+
+<!-- 1 TITTEL -->
+<section class="slide" data-title="Start">
+  <div class="hero">
+    <div>
+      <div class="kicker">VG2 Medieproduksjon</div>
+      <h1>Flerkamera: mange bilder, én sending</h1>
+      <p class="lead">Slik jobber et team når flere kameraer filmer samtidig og bildet velges direkte, mens det skjer.</p>
+      <div class="tags"><span class="tag">Presentasjon</span><span class="tag">Studiokart</span><span class="tag">Bildemikser-øvelse</span><span class="tag">Quiz</span></div>
+      <button class="btn" data-go="next">Start ▶</button>
+      <p style="color:var(--muted);font-size:.95rem;margin-top:14px">Bruk piltastene ← → for å bla. Tastene 1–4, mellomrom og F brukes i bildemikser-øvelsen.</p>
+    </div>
+    <div class="frame" id="heroView"><span class="lab">K2 · TOTAL</span></div>
+  </div>
+</section>
+
+<!-- 2 HVA ER FLERKAMERA -->
+<section class="slide" data-title="Hva er flerkamera?">
+  <div class="kicker">Grunnidé</div>
+  <h2>Klipping i sanntid</h2>
+  <p class="lead">Ved vanlig filmproduksjon klipper du etterpå. Ved flerkamera klipper du <b>mens det skjer</b>.</p>
+  <div class="cols">
+    <div class="card vs">
+      <svg viewBox="0 0 640 300" role="img" aria-label="Tre kameraer gir tre spor, bildemikseren velger ett om gangen til sendingen">
+        <g font-family="system-ui,sans-serif" font-weight="700" font-size="15">
+          <text x="10" y="30" fill="#5b5b5b">Kamera 1 · vert</text>
+          <rect x="150" y="14" width="470" height="26" rx="5" fill="#dfe7f3"/>
+          <text x="10" y="76" fill="#5b5b5b">Kamera 2 · total</text>
+          <rect x="150" y="60" width="470" height="26" rx="5" fill="#dfe7f3"/>
+          <text x="10" y="122" fill="#5b5b5b">Kamera 3 · gjest</text>
+          <rect x="150" y="106" width="470" height="26" rx="5" fill="#dfe7f3"/>
+          <rect x="230" y="14" width="110" height="26" rx="5" fill="#C97A0C"/>
+          <rect x="530" y="14" width="90" height="26" rx="5" fill="#C97A0C"/>
+          <rect x="150" y="60" width="80" height="26" rx="5" fill="#C97A0C"/>
+          <rect x="470" y="60" width="60" height="26" rx="5" fill="#C97A0C"/>
+          <rect x="340" y="106" width="130" height="26" rx="5" fill="#C97A0C"/>
+          <path d="M190 86 V190 M285 40 V190 M405 132 V190 M500 86 V190 M575 40 V190" stroke="#1b1b1b" stroke-width="2" stroke-dasharray="4 4" fill="none"/>
+          <text x="10" y="226" fill="#d62828">PROGRAM</text>
+          <rect x="150" y="204" width="80" height="34" rx="5" fill="#C97A0C"/><text x="170" y="226" fill="#fff">K2</text>
+          <rect x="230" y="204" width="110" height="34" rx="5" fill="#C97A0C"/><text x="270" y="226" fill="#fff">K1</text>
+          <rect x="340" y="204" width="130" height="34" rx="5" fill="#C97A0C"/><text x="395" y="226" fill="#fff">K3</text>
+          <rect x="470" y="204" width="60" height="34" rx="5" fill="#C97A0C"/><text x="490" y="226" fill="#fff">K2</text>
+          <rect x="530" y="204" width="90" height="34" rx="5" fill="#C97A0C"/><text x="562" y="226" fill="#fff">K1</text>
+          <text x="150" y="276" font-weight="500" fill="#5b5b5b" font-size="14">Alle kameraene filmer hele tiden. Mikseren velger hvilket bilde som sendes.</text>
+        </g>
+      </svg>
+    </div>
+    <div>
+      <div class="card">
+        <h3>Hvorfor flerkamera?</h3>
+        <ul>
+          <li><b>Direkte:</b> talkshow, sport, konserter og debatter kan sendes live.</li>
+          <li><b>Flere vinkler:</b> totalbilde, nærbilde av programleder og nærbilde av gjest.</li>
+          <li><b>Tidsbesparende:</b> sendingen er ferdig klippet når den er over.</li>
+          <li><b>Lagarbeid:</b> hver person har en egen jobb og alle må kommunisere.</li>
+        </ul>
+      </div>
+      <div class="tip"><b>Husk:</b> det finnes ingen angreknapp i en direktesending. Derfor øver vi på rutiner, roller og ord.</div>
+    </div>
+  </div>
+</section>
+
+<!-- 3 STUDIO OG ROLLER -->
+<section class="slide" data-title="Studio og roller">
+  <div class="kicker">Rollene i teamet</div>
+  <h2>Studiokart: trykk på en rolle</h2>
+  <p class="lead">Se studioet ovenfra. Trykk på kameraer, personer og regirommet for å lese hva hver enkelt gjør.</p>
+  <div class="cols">
+    <div class="map">
+      <svg viewBox="0 0 600 380" id="mapsvg" role="group" aria-label="Studiokart sett ovenfra">
+        <rect x="8" y="8" width="440" height="364" rx="10" fill="#fff" stroke="#bfb49c" stroke-width="2"/>
+        <text x="20" y="28" font-size="13" fill="#8a8068" font-weight="700">STUDIO</text>
+        <rect x="60" y="34" width="340" height="14" rx="4" fill="#1d2a44"/><text x="230" y="45" font-size="10" fill="#fff" text-anchor="middle" font-weight="700">BAKVEGG</text>
+        <!-- akse -->
+        <line x1="80" y1="150" x2="410" y2="150" stroke="#C97A0C" stroke-width="2" stroke-dasharray="7 6"/>
+        <text x="245" y="142" font-size="11" fill="#C97A0C" text-anchor="middle" font-weight="700">aksen</text>
+        <!-- regirom -->
+        <rect x="460" y="8" width="132" height="364" rx="10" fill="#26262b"/>
+        <text x="526" y="30" font-size="13" fill="#ffb84d" text-anchor="middle" font-weight="800">REGIROM</text>
+        <g class="hot" data-role="regissor" tabindex="0" role="button" aria-label="Produsent"><rect class="shape" x="472" y="40" width="108" height="54" rx="8" fill="#ffd166" stroke="#1b1b1b" stroke-width="0"/><text x="526" y="72" text-anchor="middle" font-size="14">Produsent</text></g>
+        <g class="hot" data-role="pa" tabindex="0" role="button" aria-label="Prod.ass."><rect class="shape" x="472" y="102" width="108" height="54" rx="8" fill="#cdb4db" stroke="#1b1b1b" stroke-width="0"/><text x="526" y="134" text-anchor="middle" font-size="14">Prod.ass.</text></g>
+        <g class="hot" data-role="bm" tabindex="0" role="button" aria-label="Bildemikser"><rect class="shape" x="472" y="164" width="108" height="54" rx="8" fill="#f4a261" stroke="#1b1b1b" stroke-width="0"/><text x="526" y="196" text-anchor="middle" font-size="14">Bildemikser</text></g>
+        <g class="hot" data-role="lyd" tabindex="0" role="button" aria-label="Lydtekniker"><rect class="shape" x="472" y="226" width="108" height="54" rx="8" fill="#8ecae6" stroke="#1b1b1b" stroke-width="0"/><text x="526" y="258" text-anchor="middle" font-size="14">Lydtekniker</text></g>
+        <g class="hot" data-role="grafikk" tabindex="0" role="button" aria-label="Grafikk"><rect class="shape" x="472" y="288" width="108" height="54" rx="8" fill="#b8e0a8" stroke="#1b1b1b" stroke-width="0"/><text x="526" y="320" text-anchor="middle" font-size="14">Grafikk</text></g>
+        <!-- vert og gjest, 90 grader -->
+        <rect x="90" y="104" width="110" height="22" rx="5" fill="#8b5a2b"/>
+        <g class="hot" data-role="host" tabindex="0" role="button" aria-label="Vert"><circle class="shape" cx="145" cy="152" r="24" fill="#2b6cb0" stroke="#1b1b1b" stroke-width="0"/><text x="145" y="157" text-anchor="middle" font-size="14" fill="#fff">Vert</text></g>
+        <path d="M158 172 L178 192" stroke="#2b6cb0" stroke-width="4"/><path d="M181 180 L186 196 L170 191Z" fill="#2b6cb0"/>
+        <rect x="372" y="128" width="46" height="46" rx="10" fill="#7a2e3a"/>
+        <g class="hot" data-role="guest" tabindex="0" role="button" aria-label="Gjest"><circle class="shape" cx="335" cy="152" r="24" fill="#2f7d32" stroke="#1b1b1b" stroke-width="0"/><text x="335" y="157" text-anchor="middle" font-size="14" fill="#fff">Gjest</text></g>
+        <path d="M322 172 L302 192" stroke="#2f7d32" stroke-width="4"/><path d="M299 180 L294 196 L310 191Z" fill="#2f7d32"/>
+        <text x="240" y="64" font-size="11" fill="#5b5b5b" text-anchor="middle">ca. 90° mellom vert og gjest</text>
+        <g stroke-width="2"><path d="M335 252 L165 190" stroke="#C97A0C"/><path d="M145 252 L315 190" stroke="#C97A0C"/><path d="M240 300 L150 186 M240 300 L330 186" stroke="#C97A0C" stroke-dasharray="3 5" opacity=".8"/></g>
+        <g class="hot" data-role="k1" tabindex="0" role="button" aria-label="Kamera 1"><rect class="shape" x="308" y="252" width="54" height="40" rx="8" fill="#e9e3d6" stroke="#1b1b1b" stroke-width="0"/><text x="335" y="278" text-anchor="middle" font-size="16">K1</text></g>
+        <g class="hot" data-role="k3" tabindex="0" role="button" aria-label="Kamera 3"><rect class="shape" x="118" y="252" width="54" height="40" rx="8" fill="#e9e3d6" stroke="#1b1b1b" stroke-width="0"/><text x="145" y="278" text-anchor="middle" font-size="16">K3</text></g>
+        <g class="hot" data-role="k2" tabindex="0" role="button" aria-label="Kamera 2"><rect class="shape" x="213" y="302" width="54" height="40" rx="8" fill="#e9e3d6" stroke="#1b1b1b" stroke-width="0"/><text x="240" y="328" text-anchor="middle" font-size="16">K2</text></g>
+
+      </svg>
+    </div>
+    <div class="card roleinfo" id="roleinfo" aria-live="polite"></div>
+  </div>
+</section>
+
+<!-- 4 SIGNALVEIEN -->
+<section class="slide" data-title="Signalveien">
+  <div class="kicker">Teknikk</div>
+  <h2>Veien til sendingen</h2>
+  <p class="lead">Trykk på et ledd. Bildet fra kameraet må gjennom flere steg før seerne ser det.</p>
+  <div class="chain" id="chain"></div>
+  <div class="cols even">
+    <div class="card" id="nodeinfo" aria-live="polite"></div>
+    <div class="card">
+      <h3>NDI eller HDMI?</h3>
+      <p>Dra og se hva som passer til avstanden fra kilden til switchen eller vMix-PCen.</p>
+      <input type="range" id="dist" min="1" max="120" value="5" aria-label="Avstand i meter">
+      <p style="font-size:1.6rem;font-weight:900;margin:2px 0 8px"><span id="distv">5</span> meter</p>
+      <div class="verdict" id="distres"></div>
+    </div>
+  </div>
+</section>
+
+<!-- 5 SNAKK I SENDINGEN -->
+<section class="slide" data-title="Snakk i sendingen">
+  <div class="kicker">Kommunikasjon</div>
+  <h2>Slik snakker produksjonsteamet</h2>
+  <p class="lead">Korte, faste ord. Alle skal forstå på første forsøk, og ingen gjetter.</p>
+  <div class="cols even">
+    <div class="card">
+      <h3>Fra «klar» til «ta»</h3>
+      <div class="chat" id="chat"></div>
+      <div class="row" style="margin-top:10px">
+        <button class="btn" id="chatNext">Neste replikk ▶</button>
+        <button class="btn ghost" id="chatReset">Start på nytt</button>
+        <span id="tallyDemo" class="tag" style="display:none"></span>
+      </div>
+    </div>
+    <div class="card quiz" id="quizDrill"></div>
+  </div>
+  <div class="tip"><b>Klar</b> = gjør deg klar, bildemikseren setter på preview. <b>Ta</b> = send til program. <b>Stans!</b> = hele teamet stopper alt, ingen unntak. Produsenten snakker rolig, og ikke høyt mens kamera er på lufta.</div>
+</section>
+
+<!-- 6 TRE BILDER -->
+<section class="slide" data-title="Tre bilder, tre jobber">
+  <div class="kicker">Bildeutsnitt</div>
+  <h2>Tre kameraer, tre jobber</h2>
+  <p class="lead">I en talkshow har hvert kamera sin faste oppgave. Trykk på et bilde for å lese mer.</p>
+  <div class="cols even" style="grid-template-columns:repeat(3,1fr)" id="threeCols"></div>
+  <div class="card" id="threeInfo" style="margin-top:14px" aria-live="polite"></div>
+</section>
+
+<!-- 7 AKSEN -->
+<section class="slide" data-title="Aksen">
+  <div class="kicker">Regel som ikke brytes</div>
+  <h2>Aksen: hold kameraene på samme side</h2>
+  <p class="lead">Tegn en usynlig linje mellom vert og gjest. Alle kameraene skal stå på samme side av linja. K1 og K3 står på hver sin side av settet og filmer på skrå over til hver sin person, men begge under linja. Trykk på en sone for å plassere kamera 3.</p>
+  <div class="cols even">
+    <div class="axis card">
+      <svg viewBox="0 0 520 330" id="axsvg" role="group" aria-label="Aksekart sett ovenfra"></svg>
+      <div class="verdict" id="axverdict" style="margin-top:8px" aria-live="polite"></div>
+    </div>
+    <div>
+      <div class="cutdemo" id="axframes"></div>
+      <p style="color:var(--muted);margin:6px 0 0"><span id="axnote"></span></p>
+      <div class="row" style="margin-top:10px"><button class="btn ghost" id="axplay">Pause klipping</button></div>
+    </div>
+  </div>
+</section>
+
+<!-- 8 BILDEMIKSER -->
+<section class="slide" data-title="Øvelse: bildemikser">
+  <div class="kicker">Øvelse</div>
+  <h2>Du er bildemikser</h2>
+  <p class="lead" style="margin-bottom:8px">74 sekunder talkshow. Velg neste kilde på <b style="color:var(--pvw)">PVW</b> (grønn) med tast 1–4, og send til <b style="color:var(--pgm)">PGM</b> med <b>CUT</b> (mellomrom) eller <b>FADE</b> (F). Husk fade inn og ut av kortfilmen.</p>
+  <div style="position:relative;max-width:880px;margin:0 auto">
+  <div class="game" id="game">
+    <div class="regi"><span class="who">PRODUSENT</span><span class="msg" id="cue">Trykk Start når du er klar.</span></div>
+    <div class="screens">
+      <div class="mon pvw"><div class="frame" id="pvwView"><span class="lab" id="pvwLab">PVW · K1</span></div><span class="tag2">PREVIEW · KLAR</span></div>
+      <div class="mon pgm"><div class="frame" id="pgmView"><span class="lab" id="pgmLab">PGM · K2</span></div><span class="tag2">● PROGRAM · PÅ SENDING</span></div>
+    </div>
+    <div class="multi" id="multi"></div>
+    <div class="mixer">
+      <div class="grp"><span class="gl">PVW</span><button class="mb" data-pv="1">1</button><button class="mb" data-pv="2">2</button><button class="mb" data-pv="3">3</button><button class="mb" data-pv="4" aria-label="Kortfilm">▶</button></div>
+      <div class="grp"><span class="gl">PGM</span><button class="mb" data-pg="1" tabindex="-1" aria-label="Program nå">1</button><button class="mb" data-pg="2" tabindex="-1">2</button><button class="mb" data-pg="3" tabindex="-1">3</button><button class="mb" data-pg="4" tabindex="-1">▶</button></div>
+      <button class="mb cut" id="cutBtn">CUT ⏎</button><button class="mb cut" id="fadeBtn">FADE F</button>
+      <div style="flex:1;min-width:140px"><div class="prog"><i id="prog"></i></div><div style="font:700 .8rem ui-monospace,monospace;color:#bbb;margin-top:4px"><span id="clock">00:00</span> / 01:14</div></div>
+    </div>
+  </div>
+  <div class="overlay" id="gameStart">
+    <h3 style="margin:0 0 6px;font-size:1.5rem;color:var(--amber)">Velg vanskelighetsgrad</h3>
+    <div class="lvl" id="lvl">
+      <label><input type="radio" name="lv" value="0" checked> Lett: produsenten sier «klar» og «ta»</label>
+      <label><input type="radio" name="lv" value="1"> Middels: produsenten sier bare «klar»</label>
+      <label><input type="radio" name="lv" value="2"> Vanskelig: du må se hvem som snakker</label>
+    </div>
+    <div class="card" style="margin:8px 0"><b>Slik gir du poeng:</b>
+      <ul><li>Vis kameraet som viser den som snakker: K1 for programleder, K3 for gjest.</li><li>Totalbildet (K2) er en trygg løsning i åpning, avslutning og når alle ler.</li><li>Kortfilmen (▶) spilles midt i showet. Bruk <b>fade</b> inn og ut, ikke cut.</li><li>Ikke klipp for ofte. Hold et bilde i minst to sekunder.</li></ul></div>
+    <button class="btn" id="startBtn">Start sendingen ▶</button>
+  </div>
+  <div class="overlay" id="gameEnd" style="display:none"></div>
+  </div>
+</section>
+
+<!-- 10 QUIZ -->
+<section class="slide" data-title="Quiz">
+  <div class="kicker">Test deg selv</div>
+  <h2>Quiz: flerkamera</h2>
+  <div class="card quiz" id="quizFinal" style="max-width:820px"></div>
+</section>
+
+<!-- 11 VETT -->
+<section class="slide" data-title="Flerkamera-vett">
+  <div class="kicker">Oppsummering</div>
+  <h2>Flerkamera-vett: husk dette</h2>
+  <ul class="vett" style="margin-top:14px">
+    <li><b>Klar → Ta:</b> bruk faste kommandoer, og vent på svar før du tar.</li>
+    <li><b>Preview først:</b> aldri send direkte til program uten å sjekke.</li>
+    <li><b>Stans!</b> betyr at hele teamet stopper alt. Ingen unntak.</li>
+    <li><b>Kutt til den som snakker:</b> reaksjonsbilde innimellom. Start og slutt med total.</li>
+    <li><b>Fade inn og ut av kortfilm,</b> cut i samtale. Verten sier alltid noe etter filmen.</li>
+    <li><b>Hold deg stille på lufta:</b> beveg kameraet bare mellom klipp, og ikke snakk høyt.</li>
+    <li><b>Aksen:</b> alle kameraene på samme side av linja mellom vert og gjest.</li>
+    <li><b>NDI:</b> alle kameraer på samme switch, og sjekk signalet før dere starter.</li>
+</ul>
+  <div class="tip">Se også guiden <a href="../kamerateknikker/index.html">Kamerateknikker – interaktiv guide</a>.</div>
+</section>
+
+</main>
+
+<nav class="bottom">
+  <button class="btn ghost" id="prev">◀ Tilbake</button>
+  <div class="dots" id="dots"></div>
+  <span class="cnt" id="cnt"></span>
+  <button class="btn" id="next">Neste ▶</button>
+</nav>
+
+<script>
+(function(){
+"use strict";
+const $ = (s,r)=> (r||document).querySelector(s);
+const $$ = (s,r)=> Array.from((r||document).querySelectorAll(s));
+
+/* ================= Scene (talkshow) ================= */
+function personFront(cx, shirt, hair, cls, dir){
+  dir = dir||1;
+  const y = 185;
+  return `<g>
+  <rect x="${cx-40}" y="215" width="80" height="90" rx="26" fill="${shirt}"/>
+  <rect x="${cx-9}" y="203" width="18" height="20" fill="#e0b48c"/>
+  <circle cx="${cx}" cy="${y}" r="30" fill="#f1c9a0"/>
+  <path d="M${cx-31} ${y-2} A31 31 0 0 1 ${cx+31} ${y-2} C${cx+16} ${y-21} ${cx-16} ${y-21} ${cx-31} ${y-2}Z" fill="${hair}"/>
+  <circle cx="${cx-6*dir}" cy="${y-4}" r="3.3" fill="#222"/><circle cx="${cx+14*dir}" cy="${y-4}" r="3.3" fill="#222"/>
+  <path d="M${cx+4*dir} ${y-1} l-5 10 l10 0z" fill="#e3ad84"/>
+  <ellipse class="${cls}" cx="${cx+5*dir}" cy="${y+15}" rx="9" ry="2" fill="#7a2b2b"/>
+  </g>`;
+}
+function personProfile(cx, dir, shirt, hair, cls){
+  const y = 185;
+  return `<g>
+  <rect x="${cx-34}" y="215" width="68" height="90" rx="26" fill="${shirt}"/>
+  <rect x="${cx-8}" y="203" width="16" height="20" fill="#e0b48c"/>
+  <circle cx="${cx}" cy="${y}" r="30" fill="#f1c9a0"/>
+  <path d="M${cx-dir*31} ${y-2} A31 31 0 0 1 ${cx+dir*31} ${y-2} C${cx+dir*16} ${y-21} ${cx-dir*16} ${y-21} ${cx-dir*31} ${y-2}Z" fill="${hair}"/>
+  <ellipse cx="${cx-dir*13}" cy="${y-6}" rx="19" ry="24" fill="${hair}"/>
+  <ellipse cx="${cx-dir*6}" cy="${y+5}" rx="5" ry="8" fill="#e3ad84"/>
+  <circle cx="${cx+dir*15}" cy="${y-4}" r="3.3" fill="#222"/>
+  <path d="M${cx+dir*29} ${y-3} l${dir*9} 12 l${-dir*9} 0z" fill="#e3ad84"/>
+  <ellipse class="${cls}" cx="${cx+dir*20}" cy="${y+16}" rx="6" ry="2" fill="#7a2b2b"/>
+  </g>`;
+}
+const SCENE = `
+  <rect width="800" height="450" fill="#1d2a44"/>
+  <g fill="#27395c"><rect x="30" y="150" width="60" height="180"/><rect x="100" y="110" width="50" height="220"/><rect x="160" y="170" width="70" height="160"/><rect x="620" y="120" width="60" height="210"/><rect x="690" y="160" width="80" height="170"/></g>
+  <g fill="#ffd98a" opacity=".75"><rect x="44" y="170" width="8" height="8"/><rect x="62" y="200" width="8" height="8"/><rect x="112" y="140" width="8" height="8"/><rect x="128" y="190" width="8" height="8"/><rect x="640" y="150" width="8" height="8"/><rect x="740" y="190" width="8" height="8"/></g>
+  <text x="400" y="78" text-anchor="middle" font-family="system-ui,sans-serif" font-weight="900" font-size="38" fill="none" stroke="#ffb84d" stroke-width="2.5" letter-spacing="6">TALKSHOW</text>
+  <rect x="0" y="330" width="800" height="120" fill="#3a2f28"/>
+  <rect x="0" y="326" width="800" height="6" fill="#59463a"/>
+  <rect x="438" y="300" width="50" height="30" rx="4" fill="#59463a"/><rect x="456" y="272" width="14" height="28" rx="3" fill="#a4432f"/><circle cx="463" cy="262" r="16" fill="#3f8a3a"/>
+  <rect x="530" y="232" width="150" height="108" rx="20" fill="#7a2e3a"/>
+  ${personFront(610,"#2f7d32","#3b2a1d","mG",-1)}
+  <rect x="520" y="290" width="150" height="50" rx="16" fill="#8e3a47"/>
+  ${personFront(250,"#2b6cb0","#222","mH")}
+  <rect x="110" y="288" width="280" height="56" rx="6" fill="#8b5a2b"/><rect x="110" y="288" width="280" height="10" rx="3" fill="#a56f3b"/>
+  <rect x="318" y="276" width="16" height="12" rx="2" fill="#ddd"/><circle cx="175" cy="282" r="5" fill="#333"/>
+`;
+const VB = {k1:"150 118 200 112.5", k2:"0 0 800 450", k3:"510 118 200 112.5", k4:"film"};
+const FILM = `<svg viewBox="0 0 800 450" preserveAspectRatio="xMidYMid slice" aria-hidden="true"><rect width="800" height="450" fill="#0b0b10"/><rect x="40" y="30" width="720" height="390" fill="#25314a"/><circle cx="400" cy="215" r="62" fill="#ffb84d"/><path d="M382 180 L382 250 L440 215Z" fill="#25314a"/><text x="400" y="330" text-anchor="middle" font-family="system-ui,sans-serif" font-weight="900" font-size="44" fill="#fff" letter-spacing="6">KORTFILM 1</text><rect x="120" y="372" width="560" height="8" rx="4" fill="#3d4a66"/><rect x="120" y="372" width="210" height="8" rx="4" fill="#ffb84d"/></svg>`;
+function sceneSVG(vb){ if(vb==="film") return FILM; return `<svg viewBox="${vb}" preserveAspectRatio="xMidYMid slice" aria-hidden="true">${SCENE}</svg>`; }
+function putView(host, vb){ const lab = host.querySelector(".lab"); const keep = lab ? lab.outerHTML : ""; host.innerHTML = sceneSVG(vb) + keep; }
+
+/* mouth animation (felles for alle bilder) */
+let mouthState = {H:0,G:0};      // 0..1
+function applyMouths(){
+  $$(".mH").forEach(m=>m.setAttribute("ry", 2+6*mouthState.H));
+  $$(".mG").forEach(m=>m.setAttribute("ry", 2+6*mouthState.G));
+}
+let idleMouthT = 0, idleOn = true;
+function idleLoop(ts){
+  if(idleOn){
+    const s = ts/1000;
+    mouthState.H = Math.max(0, Math.sin(s*7))*(Math.sin(s*0.8)>0?1:0);
+    mouthState.G = Math.max(0, Math.sin(s*8+1))*(Math.sin(s*0.8)<=0?1:0);
+    applyMouths();
+  }
+  requestAnimationFrame(idleLoop);
+}
+requestAnimationFrame(idleLoop);
+
+/* ================= Slides / nav ================= */
+const slides = $$(".slide");
+let cur = 0; const seen = new Set();
+const dots = $("#dots");
+slides.forEach((s,i)=>{ const d=document.createElement("button"); d.className="dot"; d.setAttribute("aria-label","Gå til lysbilde "+(i+1)+": "+s.dataset.title); d.onclick=()=>go(i); dots.appendChild(d); });
+function go(i){
+  i = Math.max(0, Math.min(slides.length-1, i));
+  if(gameState.running) stopGame(true);
+  slides.forEach((s,k)=>s.classList.toggle("on",k===i));
+  cur = i; seen.add(i);
+  $$(".dot").forEach((d,k)=>{ d.classList.toggle("on",k===i); d.classList.toggle("seen",k!==i&&seen.has(k)); });
+  $("#cnt").textContent = (i+1)+" / "+slides.length;
+  $("#curTitle").textContent = "· "+slides[i].dataset.title;
+  $("#prev").disabled = i===0; $("#next").disabled = i===slides.length-1;
+  $("#main").scrollTop = 0;
+  idleOn = (cur!==7);
+}
+$("#prev").onclick=()=>go(cur-1); $("#next").onclick=()=>go(cur+1);
+$$("[data-go=next]").forEach(b=>b.onclick=()=>go(cur+1));
+$("#fs").onclick=()=>{ if(document.fullscreenElement) document.exitFullscreen(); else document.documentElement.requestFullscreen && document.documentElement.requestFullscreen(); };
+
+/* ================= 1 Tittel ================= */
+putView($("#heroView"), VB.k2);
+
+/* ================= 3 Roller ================= */
+const ROLES = {
+  regissor:{n:"Produsent", d:"Leder produksjonen fra start til slutt etter rundown og kjøreplan. Bestemmer hva som går på lufta og når, og gir kommandoer til hele teamet.", say:"«Kamera 2 – klar!» … «Ta!»", rule:"Snakk rolig og tydelig. Stresser du, stresser alle. Ikke snakk høyt mens kamera er på lufta."},
+  pa:{n:"Produksjonsassistent", d:"Holder styr på kjøreplan, tid og logg. Gir tidsvarsler til produsenten, fører logg over tekniske feil og sørger for at opptaket lagres to steder.", say:"«2 minutter igjen til kortfilm 2.»", rule:"Skriv ned alt, selv det du tror du husker. Snakk aldri høyt under opptak uten tillatelse."},
+  bm:{n:"Bildemikser (vMix)", d:"Styrer vMix. Setter kilden på preview (PVW) når produsenten sier «klar», sender den til program (PGM) på «Ta!», og starter kortfilmer på «Play!».", say:"«Kamera 2 på preview … tar 2.»", rule:"Aldri send direkte til program. Alltid preview først, og bruk det ene sekundet til å dobbeltsjekke."},
+  lyd:{n:"Lydtekniker (X32)", d:"Styrer Behringer X32. Blander mikrofoner og kortfilmlyd, sørger for at programlyd er riktig rutet til og fra vMix, og passer på at nivået ikke klipper (rødt på meter).", say:"«Lyd klar. Mikrofon vert og gjest er åpne.»", rule:"Bruk alltid hodetelefoner for å høre det samme som seerne. Gate på mikrofonene."},
+  grafikk:{n:"Grafikkoperatør", d:"Lager og aktiverer grafikk (lower thirds, tittel, rulletekst) i vMix Title-editor, på kommando fra produsenten. Sjekker at navn er riktig stavet.", say:"«Grafikk inn!»: lower third med gjestens navn.", rule:"Vis navn første gang en person er på skjermen. Stavefeil på lufta er pinlig."},
+  k1:{n:"Kamera 1: programleder", d:"Står på høyre side av studio og filmer på skrå over mot programlederen. Sender NDI-signal til vMix, navngitt «Kamera-1». Brukes når verten snakker.", say:"«Kamera 1 klar.»", rule:"Hold deg stille og klar på «Kamera 1 – klar!». Beveg deg bare mellom klipp."},
+  k2:{n:"Kamera 2: totalbilde", d:"Viser hele settet med både vert og gjest. Brukes i åpning, avslutning, når alle ler, og etter kortfilmer. Sender NDI til vMix, navngitt «Kamera-2».", say:"«Kamera 2 klar.»", rule:"Tryggeste bildet i teamet. Start og avslutt alltid med totalen."},
+  k3:{n:"Kamera 3: gjest", d:"Står på venstre side av studio, motsatt av K1, og filmer på skrå over mot gjesten. Brukes når gjesten snakker. Sender NDI til vMix, navngitt «Kamera-3».", say:"«Kamera 3 klar.»", rule:"Hold litt luft over hodet, ikke for mye og ikke for lite. Unngå unødvendig zoom og panorering."},
+  host:{n:"Vert", d:"Leder samtalen, stiller forberedte spørsmål og holder tiden. Ser på gjesten, ikke i kameraet, med mindre produsenten sier noe annet. Er skuespiller, ikke produsent.", say:"«Velkommen til [shownavn]! I dag skal vi …»", rule:"Si alltid noe etter en kortfilm. Aldri gå rett til neste innslag uten en kommentar."},
+  guest:{n:"Gjest", d:"Svarer på spørsmål og forteller sin historie. Skal være briefet på forhånd, så ingen blir overrasket live.", say:"«Takk for at jeg fikk komme.»", rule:"Snakk til verten. Teamet tar seg av resten."}
+};
+function showRole(k){
+  const r = ROLES[k]; if(!r) return;
+  $$("#mapsvg .hot").forEach(h=>h.classList.toggle("sel", h.dataset.role===k));
+  $("#roleinfo").innerHTML = `<h3>${r.n}</h3><p>${r.d}</p><div class="say">${r.say}</div><p><b>Regel:</b> ${r.rule}</p>`;
+}
+$$("#mapsvg .hot").forEach(h=>{
+  h.addEventListener("click",()=>showRole(h.dataset.role));
+  h.addEventListener("keydown",e=>{ if(e.key==="Enter"||e.key===" "){ e.preventDefault(); showRole(h.dataset.role);} });
+});
+$("#roleinfo").innerHTML = `<h3>Trykk på en rolle</h3><p>Start gjerne med produsenten eller bildemikseren, så ser du hvordan teamet henger sammen.</p>`;
+
+/* ================= 4 Signalvei ================= */
+const NODES = [
+  {t:"Kamera", s:"sender NDI", d:"Kameraene sender video og lyd som NDI over ethernet. Gi dem tydelige navn: «Kamera-1», «Kamera-2» osv. Kilder uten NDI (PC-skjerm, ekstra kamera) kobles med HDMI til et capture card."},
+  {t:"Nettverksswitch", s:"alle på samme", d:"Alle kameraer og PC-er kobles til samme switch med ethernet. Står de ikke på samme switch, dukker ikke NDI-kameraet opp i vMix. Sjekk i NDI Video Monitor (NDI Tools)."},
+  {t:"vMix", s:"bildemikser", d:"Alle kilder kommer inn her: NDI-kameraer, HDMI-kilder, kortfilmer og grafikk. Du setter kilden på Preview (PVW) først og sender til Program (PGM). Cut er standard, fade brukes til og fra film."},
+  {t:"Program (PGM)", s:"det seerne ser", d:"Det som er på lufta nå. Alt som sendes til program tas opp (Recording) og vises på skjerm. Sjekk at Recording er på før dere starter."},
+  {t:"X32", s:"lyd", d:"Mikrofoner og kortfilmlyd blandes i Behringer X32. Hovedmiksen (LR) går til høyttalere og tilbake til vMix som programlyd. Hodetelefoner på hele veien."}
+];
+const chain = $("#chain");
+NODES.forEach((n,i)=>{
+  const b = document.createElement("button"); b.className="node"; b.innerHTML = n.t+"<small>"+n.s+"</small>";
+  b.onclick=()=>selNode(i); chain.appendChild(b);
+  if(i<NODES.length-1){ const a=document.createElement("span"); a.className="arrow"; a.textContent="→"; a.setAttribute("aria-hidden","true"); chain.appendChild(a); }
+});
+function selNode(i){
+  $$(".node",chain).forEach((b,k)=>b.classList.toggle("sel",k===i));
+  $("#nodeinfo").innerHTML = `<h3>${NODES[i].t}</h3><p>${NODES[i].d}</p>`;
+}
+selNode(0);
+const dist = $("#dist");
+function cableAdvice(){
+  const m = +dist.value; $("#distv").textContent = m;
+  let t;
+  if(m<=10) t = "HDMI til capture card går bra for kilder uten NDI. Kameraene sender helst NDI.";
+  else if(m<=15) t = "HDMI er på grensa. Flytt kilden nærmere, eller bruk NDI over nettverkskabel.";
+  else if(m<=100) t = "NDI over ethernet (Cat6) til switchen. HDMI klarer ikke så langt uten spesialutstyr.";
+  else t = "Over 100 meter per nettverkskabel må du sette inn en ekstra switch, eller bruke fiber.";
+  $("#distres").textContent = t;
+}
+dist.oninput = cableAdvice; cableAdvice();
+
+/* ================= Quiz-motor ================= */
+function makeQuiz(el, title, qs){
+  let i=0, score=0, answered=false;
+  function render(){
+    if(i>=qs.length){
+      const pct = Math.round(100*score/qs.length);
+      el.innerHTML = `<div class="qhead"><span>${title}</span><span>Ferdig</span></div><div class="big">${score}/${qs.length}</div>
+        <p style="font-size:1.15rem;margin:8px 0 12px">${pct>=80?"Sterkt! Du er klar for å være produsent.":pct>=50?"Greit, men øv litt mer på det du bommet på.":"Les gjennom lysbildene på nytt og prøv igjen."}</p>
+        <button class="btn" data-again>Prøv igjen</button>`;
+      $("[data-again]",el).onclick=()=>{i=0;score=0;render();}; return;
+    }
+    const q = qs[i]; answered=false;
+    el.innerHTML = `<div class="qhead"><span>${title}</span><span>${i+1} av ${qs.length}</span></div><div class="qbar"><i style="width:${100*i/qs.length}%"></i></div>
+      <div class="q">${q.q}</div><div class="opts"></div><div class="fb" aria-live="polite"></div>`;
+    const box = $(".opts",el);
+    q.o.forEach((txt,k)=>{
+      const b = document.createElement("button"); b.className="opt"; b.textContent=txt;
+      b.onclick=()=>{
+        if(answered) return; answered=true;
+        const ok = k===q.a; if(ok) score++;
+        $$(".opt",box).forEach((x,j)=>{ x.disabled=true; if(j===q.a) x.classList.add("good"); else if(j===k) x.classList.add("bad"); });
+        $(".fb",el).innerHTML = `<div class="why"><b>${ok?"Riktig.":"Ikke helt."}</b> ${q.w}</div><div style="margin-top:10px"><button class="btn" data-n>${i+1<qs.length?"Neste ▶":"Se resultat"}</button></div>`;
+        $("[data-n]",el).focus();
+        $("[data-n]",el).onclick=()=>{i++;render();};
+      };
+      box.appendChild(b);
+    });
+  }
+  render();
+}
+makeQuiz($("#quizDrill"),"Din tur",[
+  {q:"Produsenten sier: «Kamera 3 – klar!» Hva gjør bildemikseren?",o:["Setter kamera 3 på preview (PVW)","Sender kamera 3 rett til program","Starter kortfilmen","Skrur opp lyden"],a:0,w:"«Klar» betyr forbered. Bildemikseren setter kilden på preview, og kameraoperatøren holder seg stille og klar."},
+  {q:"Produsenten sier: «Ta!» Hva gjør bildemikseren?",o:["Setter neste kamera på preview","Sender det som ligger på preview til program","Starter opptaket","Demper mikrofonene"],a:1,w:"«Ta!» betyr at bildet på preview går til program (PGM) og dermed ut til seerne."},
+  {q:"Kamera 2 er på lufta, og du ser at innrammingen er skjev. Hva gjør du?",o:["Retter den med en gang","Sier ifra, og retter først når kameraet er av lufta","Zoomer ut","Slår av NDI"],a:1,w:"Når du er på lufta er det for sent å flytte deg. Si ifra og beveg deg bare mellom klipp."},
+  {q:"Produsenten roper «Stans!». Hva skjer?",o:["Bare bildemikseren stopper","Hele teamet stopper alt, ingen unntak","Verten fortsetter som vanlig","Opptaket starter på nytt"],a:1,w:"«Stans!» betyr at hele teamet stopper alt. Det brukes ved tekniske feil, og produsenten leder feilsøkingen."},
+  {q:"Produsenten sier: «Grafikk inn!» Hvem gjør noe?",o:["Lydteknikeren","Kameraoperatør 1","Grafikkoperatøren, som aktiverer lower third","Produksjonsassistenten"],a:2,w:"Grafikkoperatøren aktiverer grafikken (for eksempel navnestripe) i vMix på kommando."}
+]);
+makeQuiz($("#quizFinal"),"Quiz",[
+  {q:"Hva er den viktigste regelen i vMix?",o:["Alltid preview først, aldri direkte til program uten å sjekke","Alltid direkte til program for å spare tid","Bare bruke fade","Aldri bruke preview"],a:0,w:"Bruk det ene sekundet på preview til å dobbeltsjekke før du sender til program."},
+  {q:"Hvordan kommer kameraenes bilde inn i vMix hos oss?",o:["Via analog videokabel","NDI over ethernet, med alle på samme switch","Via Bluetooth","Via minijack"],a:1,w:"Kameraene sender NDI over nettverkskabel. Står de ikke på samme switch, dukker de ikke opp i vMix."},
+  {q:"Du vil ha en PC-skjerm (uten NDI) inn i vMix. Hva bruker du?",o:["HDMI til et capture card","En ethernet-kabel direkte","X32","Det er ikke mulig"],a:0,w:"Kilder uten NDI-støtte kobles med HDMI til et capture card på vMix-PCen."},
+  {q:"K3 flyttes over aksen til motsatt side. Hva skjer når du klipper mellom K1 og K3?",o:["Ingenting, det er bare bedre","Vert og gjest ser ut til å se samme vei, og samtalen virker rar","Bildet blir mørkere","Lyden forsvinner"],a:1,w:"Når kameraene står på hver sin side av aksen, snur blikkretningen, og de ser ikke lenger på hverandre i klippet."},
+  {q:"Når passer det best å ta totalbildet (K2)?",o:["Hver gang noen sier noe","Ved åpning, avslutning, når alle ler og etter kortfilmer","Aldri","Bare når gjesten snakker"],a:1,w:"Start og avslutt alltid med total. Under samtale kutter du til den som snakker."},
+  {q:"Hva gjør du i overgangen til og fra en kortfilm?",o:["Fade inn og ut","Hard cut hver gang","Klipper midt i filmen","Zoomer inn"],a:0,w:"Fade (ikke cut) inn og ut av kortfilmene. I samtale er cut standard."},
+  {q:"Hva må verten alltid gjøre etter en kortfilm?",o:["Si noe, en kommentar eller et spørsmål","Gå rett til neste innslag","Forlate studio","Ingenting"],a:0,w:"Verten må alltid si noe etter en film. Overgangene er det seeren husker."},
+  {q:"Under en samtale: hvem viser du i bildet?",o:["Den som snakker (og reaksjonsbilde innimellom)","Alltid den som lytter","Alltid totalen","Tilfeldig"],a:0,w:"Kutt til den som snakker. Et reaksjonsbilde av den andre gir variasjon."},
+  {q:"Hvem bestemmer hva som går på lufta?",o:["Kamera 1","Produsenten","Gjesten","Lydteknikeren"],a:1,w:"Produsenten bestemmer, og bildemikseren utfører med en knapp."}
+]);
+
+/* ================= 5 Dialog ================= */
+const DIALOG = [
+  {c:"reg",w:"Produsent",t:"Kamera 2 – klar!"},
+  {c:"cam",w:"Kameraoperatør 2",t:"Kamera 2 klar. (står stille, innramming og fokus er sjekket)",tally:"K2 er klar."},
+  {c:"mix",w:"Bildemikser",t:"Kamera 2 på preview.",tally:"K2 ligger på preview (PVW)."},
+  {c:"reg",w:"Produsent",t:"Ta!"},
+  {c:"mix",w:"Bildemikser",t:"Tar 2. (cut til program)",tally:"K2 er nå på lufta (PGM)."},
+  {c:"cam",w:"Produksjonsassistent",t:"2 minutter igjen til kortfilm 1."},
+  {c:"reg",w:"Produsent",t:"Kortfilm 1 – klar!"},
+  {c:"mix",w:"Bildemikser",t:"Kortfilm 1 på preview.",tally:"Kortfilmen ligger på preview."},
+  {c:"reg",w:"Produsent",t:"Play!"},
+  {c:"mix",w:"Bildemikser",t:"Spiller. (fade til kortfilmen)",tally:"Kortfilmen er på lufta. Fade inn, ikke cut."}
+];
+let dStep=0;
+function dRender(){
+  const box=$("#chat"); box.innerHTML = dStep===0 ? '<p style="color:var(--muted)">Trykk «Neste replikk» for å høre samtalen i produksjonen.</p>' : "";
+  for(let i=0;i<dStep;i++){ const d=DIALOG[i]; const el=document.createElement("div"); el.className="bubble "+d.c; el.innerHTML=`<b>${d.w}</b>${d.t}`; box.appendChild(el); }
+  const last = DIALOG[dStep-1], tl=$("#tallyDemo");
+  if(last && last.tally){ tl.style.display="inline-block"; tl.textContent=last.tally; tl.style.background = /lufta/.test(last.tally)?"#fde8e8":"#e6f4ec"; } else tl.style.display="none";
+  $("#chatNext").disabled = dStep>=DIALOG.length;
+}
+$("#chatNext").onclick=()=>{ if(dStep<DIALOG.length){dStep++;dRender();} };
+$("#chatReset").onclick=()=>{dStep=0;dRender();};
+dRender();
+
+/* ================= 6 Tre bilder ================= */
+const THREE = [
+  {k:"K1",n:"Programleder",vb:VB.k1,d:"Hode og skuldre på verten, som sitter frontalt bak pulten og snur seg mot gjesten.",use:"Når verten snakker eller stiller spørsmål. Også som reaksjonsbilde når gjesten forteller noe.",tip:"Verten ser mot høyre i bildet, mot gjesten. Det er viktig for aksen."},
+  {k:"K2",n:"Totalbilde",vb:VB.k2,d:"Hele settet, med vert ved pulten og gjest i stolen. De sitter på skrå mot kameraene, ca. 90 graders vinkel mellom dem.",use:"Åpning, avslutning, når alle snakker eller ler, og som trygg overgang mellom nærbilder.",tip:"Hvis du er usikker, er totalbildet sjelden feil."},
+  {k:"K3",n:"Gjest",vb:VB.k3,d:"Hode og skuldre på gjesten, sett forfra. Gjesten er snudd litt mot verten.",use:"Når gjesten svarer. Her kommer følelsene best fram.",tip:"Gjesten ser mot venstre i bildet, så vert og gjest ser på hverandre når du klipper."}
+];
+const tc = $("#threeCols");
+THREE.forEach((t,i)=>{
+  const w = document.createElement("button"); w.className="tile"; w.style.cssText="padding:0;background:none;border:0;text-align:left";
+  w.innerHTML = `<div class="frame"><span class="lab">${t.k} · ${t.n.toUpperCase()}</span></div><div style="font-weight:800;margin-top:6px">${t.n}</div>`;
+  tc.appendChild(w); putView($(".frame",w), t.vb);
+  w.onclick=()=>{ $$("#threeCols .frame").forEach((f,k)=>f.style.borderColor = k===i?"#C97A0C":"#222");
+    $("#threeInfo").innerHTML = `<h3>${t.k}: ${t.n}</h3><p><b>Hva ser du?</b> ${t.d}</p><p><b>Bruk det til:</b> ${t.use}</p><p><b>Tips:</b> ${t.tip}</p>`; };
+});
+$("#threeInfo").innerHTML = `<h3>Trykk på et bilde</h3><p>Se hva hvert kamera brukes til.</p>`;
+
+/* ================= 7 Aksen ================= */
+let k3Side = "below", axTimer=null, axShow = 2, axPause=false;
+function head(dir, fill){ // profil sett fra kamera
+  const cx=160, cy=100;
+  return `<rect width="320" height="180" fill="#1d2a44"/><rect y="150" width="320" height="30" fill="#3a2f28"/>
+   <rect x="${cx-60}" y="130" width="120" height="60" rx="30" fill="${fill}"/>
+   <circle cx="${cx}" cy="${cy}" r="40" fill="#f1c9a0"/>
+   <path d="M${cx-41} ${cy-3} A41 41 0 0 1 ${cx+41} ${cy-3} C${cx+20} ${cy-30} ${cx-20} ${cy-30} ${cx-41} ${cy-3}Z" fill="#2a2a2a"/>
+   <circle cx="${cx+dir*12}" cy="${cy-5}" r="4" fill="#222"/><circle cx="${cx+dir*30}" cy="${cy-5}" r="4" fill="#222"/>
+   <path d="M${cx+dir*40} ${cy} l${dir*10} 14 l${-dir*10} 0z" fill="#e3ad84"/>
+   <path d="M${cx+dir*16} ${cy+20} q${dir*8} 6 ${dir*18} 0" stroke="#7a2b2b" stroke-width="3" fill="none"/>
+   <path d="${dir>0?'M250 40 l30 0 l-10 -10 m10 10 l-10 10':'M70 40 l-30 0 l10 -10 m-10 10 l10 10'}" stroke="#ffb84d" stroke-width="4" fill="none" stroke-linecap="round"/>`;
+}
+function axDraw(){
+  const below = k3Side==="below";
+  const k3y = below?262:62, k3a = below?-1:1;
+  $("#axsvg").innerHTML = `
+    <rect width="520" height="330" fill="#f6f1e7" rx="10"/>
+    <line x1="40" y1="165" x2="480" y2="165" stroke="#C97A0C" stroke-width="3" stroke-dasharray="9 7"/>
+    <text x="260" y="154" text-anchor="middle" font-size="14" font-weight="800" fill="#C97A0C">AKSEN</text>
+    <g class="zone" id="zBelow" tabindex="0" role="button" aria-label="Plasser kamera 3 under linja"><rect x="30" y="195" width="170" height="110" rx="10"/><text x="115" y="298" text-anchor="middle" font-size="12" fill="#8a6a2b" font-weight="700">trykk for å plassere K3</text></g>
+    <g class="zone" id="zAbove" tabindex="0" role="button" aria-label="Plasser kamera 3 over linja"><rect x="30" y="25" width="170" height="110" rx="10"/><text x="115" y="46" text-anchor="middle" font-size="12" fill="#8a6a2b" font-weight="700">trykk for å plassere K3</text></g>
+    <circle cx="130" cy="165" r="26" fill="#2b6cb0"/><text x="130" y="170" text-anchor="middle" font-size="14" fill="#fff" font-weight="800">Vert</text>
+    <path d="M158 165 l14 -8 l0 16z" fill="#2b6cb0"/>
+    <circle cx="390" cy="165" r="26" fill="#2f7d32"/><text x="390" y="170" text-anchor="middle" font-size="14" fill="#fff" font-weight="800">Gjest</text>
+    <path d="M362 165 l-14 -8 l0 16z" fill="#2f7d32"/>
+    <!-- K2 -->
+    <g><rect x="363" y="237" width="54" height="40" rx="8" fill="#e9e3d6" stroke="#222" stroke-width="2"/><text x="390" y="263" text-anchor="middle" font-size="16" font-weight="800">K1</text><path d="M375 235 L150 188" stroke="#C97A0C" stroke-width="3"/></g>
+    <!-- K3 -->
+    <g><rect x="103" y="${k3y-20}" width="54" height="40" rx="8" fill="${below?'#e9e3d6':'#fde8e8'}" stroke="${below?'#222':'#d62828'}" stroke-width="3"/><text x="130" y="${k3y+6}" text-anchor="middle" font-size="16" font-weight="800">K3</text><path d="M145 ${below?k3y-22:k3y+22} L370 ${below?188:142}" stroke="#C97A0C" stroke-width="3"/></g>`;
+  ["zBelow","zAbove"].forEach(id=>{ const z=$("#"+id); const side=id==="zBelow"?"below":"above";
+    z.onclick=()=>{k3Side=side;axDraw();axFrames();};
+    z.onkeydown=e=>{ if(e.key==="Enter"||e.key===" "){e.preventDefault();k3Side=side;axDraw();axFrames();} }; });
+  const v = $("#axverdict");
+  if(below){ v.style.background="#e6f4ec"; v.textContent="Riktig. Begge kameraene står på samme side av aksen."; }
+  else { v.style.background="#fde8e8"; v.textContent="Aksebrudd! K3 står på motsatt side av aksen."; }
+}
+function axFrames(){
+  const below = k3Side==="below";
+  const fr = $("#axframes");
+  fr.innerHTML = `<div class="frame" id="axf1"><span class="lab">K1 · PROGRAMLEDER</span><svg viewBox="0 0 320 180">${head(1,"#2b6cb0")}</svg></div>
+                  <div class="frame" id="axf2"><span class="lab">K3 · GJEST</span><svg viewBox="0 0 320 180">${head(below?-1:1,"#2f7d32")}</svg></div>`;
+  $("#axnote").textContent = below ? "Vert ser til høyre og gjest ser til venstre. Klippet viser at de ser på hverandre." : "Nå ser begge til høyre i bildet. Det ser ut som de ikke snakker sammen.";
+  axShow=2; axTick(true);
+}
+function axTick(init){
+  const a=$("#axf1"), b=$("#axf2"); if(!a||!b) return;
+  if(!init && !axPause) axShow = axShow===1?2:1;
+  a.classList.toggle("live",axShow===1); b.classList.toggle("live",axShow===2);
+}
+setInterval(()=>{ if(cur===6) axTick(false); },1500);
+$("#axplay").onclick=function(){ axPause=!axPause; this.textContent = axPause?"Fortsett klipping":"Pause klipping"; };
+axDraw(); axFrames();
+
+/* ================= 8 Bildemikser-øvelse ================= */
+const TOTAL = 74;
+const SEG = [
+  {s:0,  e:6,  sp:"B", best:2, ok:[1],   label:"Åpning: verten ønsker velkommen"},
+  {s:6,  e:14, sp:"H", best:1, ok:[2],   label:"Verten ønsker gjesten velkommen"},
+  {s:14, e:28, sp:"G", best:3, ok:[2],   label:"Gjesten svarer"},
+  {s:28, e:34, sp:"H", best:1, ok:[2],   label:"Verten følger opp"},
+  {s:34, e:46, sp:"G", best:3, ok:[2],   label:"Gjesten forteller"},
+  {s:46, e:50, sp:"L", best:2, ok:[1,3], label:"Alle ler"},
+  {s:50, e:60, sp:"F", best:4, ok:[],    label:"Kortfilm 1"},
+  {s:60, e:66, sp:"H", best:1, ok:[2],   label:"Verten kommenterer filmen"},
+  {s:66, e:74, sp:"B", best:2, ok:[1],   label:"Avslutning"}
+];
+const gameState = {running:false};
+let G = null;
+const nm = k => k===4 ? "FILM" : "K"+k;
+const NUM = {1:"Kamera 1",2:"Kamera 2",3:"Kamera 3",4:"Kortfilm 1"};
+const multi = $("#multi");
+[1,2,3,4].forEach(k=>{
+  const b=document.createElement("button"); b.className="tile"; b.dataset.k=k; b.setAttribute("aria-label","Velg "+NUM[k]+" på preview");
+  b.innerHTML = `<div class="frame"><span class="lab">${nm(k)}</span></div><span class="cn">${nm(k)}</span>`; multi.appendChild(b);
+  putView($(".frame",b), VB["k"+k]); b.onclick=()=>setPvw(k);
+});
+putView($("#pgmView"), VB.k2); putView($("#pvwView"), VB.k1);
+function setPvw(k){ if(!G||!G.run) return; G.pvw=k; paintMixer(); }
+function doTrans(type){
+  if(!G||!G.run) return;
+  if(G.pvw===G.pgm) return;
+  const now=G.t; if(G.lastCut!=null && now-G.lastCut<2) G.fast++; G.lastCut=now; G.cuts++;
+  if((G.pgm===4||G.pvw===4) && type==="cut") G.hard++;
+  const p=G.pgm; G.pgm=G.pvw; G.pvw=p; paintMixer();
+  if(type==="fade"){ const v=$("#pgmView"); v.classList.remove("fading"); void v.offsetWidth; v.classList.add("fading"); setTimeout(()=>v.classList.remove("fading"),950); }
+}
+function paintMixer(){
+  const pgm = G?G.pgm:2, pvw = G?G.pvw:1;
+  putView($("#pgmView"), VB["k"+pgm]); putView($("#pvwView"), VB["k"+pvw]);
+  $("#pgmLab").textContent = "PGM · "+nm(pgm);
+  $("#pvwLab").textContent = "PVW · "+nm(pvw);
+  $$(".tile",multi).forEach(t=>{ const k=+t.dataset.k; t.classList.toggle("isPgm",k===pgm); t.classList.toggle("isPvw",k===pvw&&k!==pgm); });
+  $$("[data-pv]").forEach(b=>b.classList.toggle("pvw",+b.dataset.pv===pvw));
+  $$("[data-pg]").forEach(b=>b.classList.toggle("pgm",+b.dataset.pg===pgm));
+  applyMouths();
+}
+$$("[data-pv]").forEach(b=>b.onclick=()=>setPvw(+b.dataset.pv));
+$("#cutBtn").onclick=()=>doTrans("cut");
+$("#fadeBtn").onclick=()=>doTrans("fade");
+
+function cuesFor(level){
+  const c=[];
+  SEG.forEach((s,i)=>{
+    if(i===0) return;
+    const klar = s.best===4 ? "Kortfilm 1 – klar!" : NUM[s.best]+" – klar!";
+    if(level<=1) c.push({t:Math.max(0,s.s-3.5),k:"sb",txt:klar});
+    if(level===0) c.push({t:s.s,k:"ta",txt:s.best===4?"Play!":"Ta!"});
+  });
+  return c.sort((a,b)=>a.t-b.t);
+}
+function segIdx(t){ for(let i=0;i<SEG.length;i++) if(t>=SEG[i].s && t<SEG[i].e) return i; return SEG.length-1; }
+function resetUI(){ $("#prog").style.width="0"; $("#clock").textContent="00:00"; $("#cue").className="msg"; $("#cue").textContent="Trykk Start når du er klar."; }
+
+function startGame(){
+  const level = +($("input[name=lv]:checked").value);
+  G = {run:true,t:0,last:performance.now(),pgm:2,pvw:1,cues:cuesFor(level),ci:0,level,cuts:0,fast:0,hard:0,lastCut:null,
+       tot:SEG.map(()=>0),good:SEG.map(()=>0),cam:SEG.map(()=>[0,0,0,0,0])};
+  gameState.running = true; idleOn=false;
+  $("#gameStart").style.display="none"; $("#gameEnd").style.display="none";
+  $("#cue").className="msg"; $("#cue").textContent = level===2?"Du er alene. Se hvem som snakker.":"Sendingen starter …";
+  paintMixer(); requestAnimationFrame(gameLoop);
+}
+function stopGame(silent){
+  gameState.running=false; if(G) G.run=false; idleOn = (cur!==7);
+  if(silent){ $("#gameStart").style.display="block"; $("#gameEnd").style.display="none"; G=null; paintMixer(); resetUI(); }
+}
+function gameLoop(ts){
+  if(!G||!G.run) return;
+  const dt = Math.min(0.1,(ts-G.last)/1000); G.last=ts; G.t += dt;
+  const t=G.t; if(t>=TOTAL){ finishGame(); return; }
+  const si=segIdx(t), s=SEG[si];
+  const wob = Math.max(0,Math.sin(t*12));
+  mouthState.H = (s.sp==="H"||s.sp==="B"||s.sp==="L") ? wob : 0;
+  mouthState.G = (s.sp==="G"||s.sp==="L") ? Math.max(0,Math.sin(t*10+1)) : 0;
+  if(s.sp==="L"){ mouthState.H=0.6+0.4*wob; mouthState.G=0.6+0.4*Math.max(0,Math.sin(t*9)); }
+  applyMouths();
+  while(G.ci<G.cues.length && G.cues[G.ci].t<=t){ const c=G.cues[G.ci++]; const e=$("#cue"); e.textContent=c.txt; e.className="msg "+c.k; }
+  let w=0; const k=G.pgm; G.cam[si][k]+=dt;
+  const grace = (t - s.s) < 1.3; const prev = si>0?SEG[si-1].best:s.best;
+  if(k===s.best || (grace && k===prev)) w=1; else if(s.ok.indexOf(k)>=0) w=0.5;
+  G.tot[si]+=dt; G.good[si]+=dt*w;
+  $("#prog").style.width = (100*t/TOTAL)+"%";
+  const m=Math.floor(t/60), sec=Math.floor(t%60); $("#clock").textContent = String(m).padStart(2,"0")+":"+String(sec).padStart(2,"0");
+  requestAnimationFrame(gameLoop);
+}
+function finishGame(){
+  G.run=false; gameState.running=false; idleOn=false;
+  let g=0,t=0; G.good.forEach(x=>g+=x); G.tot.forEach(x=>t+=x);
+  const base = Math.round(100*g/t);
+  const pen = Math.min(12, G.fast*3) + Math.min(6, G.hard*3);
+  const pct = Math.max(0, base-pen);
+  const stars = pct>=85?"★★★":pct>=65?"★★☆":pct>=40?"★☆☆":"☆☆☆";
+  const col = x=> x>=0.8?"#1f9d55":x>=0.5?"#C97A0C":"#d62828";
+  const strip = SEG.map((s,i)=>{ const r=G.good[i]/G.tot[i]; return `<div style="flex:${s.e-s.s};background:${col(r)}" title="${s.label}">${Math.round(100*r)}%</div>`; }).join("");
+  let worst=0,wr=2; SEG.forEach((s,i)=>{ const r=G.good[i]/G.tot[i]; if(r<wr){wr=r;worst=i;} });
+  const ws=SEG[worst]; const cams=G.cam[worst]; let main=1; [1,2,3,4].forEach(k=>{ if(cams[k]>cams[main]) main=k; });
+  let tip = wr>=0.85 ? "Veldig jevnt gjort. Prøv et høyere nivå for å utfordre deg." :
+    `Svakeste del: «${ws.label}». Der lå du mest på ${nm(main)}, men ${nm(ws.best)} hadde vært best.`;
+  if(G.hard) tip += " Du brukte cut inn eller ut av kortfilmen. Bruk fade.";
+  $("#gameEnd").innerHTML = `
+    <div class="cols even"><div><div class="kicker">Resultat</div><div class="big">${pct}%</div><div style="font-size:2rem;color:var(--amber);font-weight:900">${stars}</div>
+      <p style="margin:8px 0">Overganger: <b>${G.cuts}</b>${G.fast?` · for raske klipp: <b>${G.fast}</b>`:""}${G.hard?` · cut på kortfilm: <b>${G.hard}</b>`:""}${pen?` (−${pen} poeng)`:""}</p>
+      <div class="tip">${tip}</div></div>
+      <div><b>Slik gikk det gjennom sendingen</b><div class="strip">${strip}</div>
+      <div style="font-size:.9rem;color:var(--muted)">Grønn = riktig kilde, gul = brukbart, rød = bommet.</div>
+      <ul style="margin:8px 0 0;padding-left:1.2em;font-size:.95rem">${SEG.map(s=>`<li><b>${s.s}–${s.e} s:</b> ${s.label} → best ${nm(s.best)}</li>`).join("")}</ul></div></div>
+    <div class="row" style="margin-top:12px"><button class="btn" id="again">Prøv igjen</button><button class="btn ghost" id="toQuiz">Gå videre ▶</button></div>`;
+  $("#gameEnd").style.display="block";
+  $("#again").onclick=()=>{ $("#gameEnd").style.display="none"; $("#gameStart").style.display="block"; G=null; paintMixer(); resetUI(); idleOn=false; };
+  $("#toQuiz").onclick=()=>go(cur+1);
+  mouthState.H=mouthState.G=0; applyMouths();
+}
+$("#startBtn").onclick=startGame;
+
+/* ================= Tastatur ================= */
+document.addEventListener("keydown",e=>{
+  const tag = (e.target.tagName||"");
+  if(tag==="INPUT"&&e.target.type==="range") return;
+  if(cur===7 && gameState.running){
+    if(e.key==="1"||e.key==="2"||e.key==="3"||e.key==="4"){ setPvw(+e.key); e.preventDefault(); return; }
+    if(e.key===" "||e.key==="Enter"){ doTrans("cut"); e.preventDefault(); return; }
+    if(e.key==="f"||e.key==="F"){ doTrans("fade"); e.preventDefault(); return; }
+  }
+  if(tag==="BUTTON"||tag==="LABEL"||tag==="A") { if(e.key===" "||e.key==="Enter") return; }
+  if(e.key==="ArrowRight"){ if(!gameState.running) go(cur+1); }
+  if(e.key==="ArrowLeft"){ if(!gameState.running) go(cur-1); }
+  if(e.key==="f"||e.key==="F"){ if(tag!=="INPUT") $("#fs").click(); }
+});
+
+go(0);
+})();
+</script>
+</body>
+</html>
