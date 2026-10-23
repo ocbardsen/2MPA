@@ -46,22 +46,30 @@
   .topview small{display:block;color:var(--muted);font-weight:600;margin-bottom:2px}
   .topview svg{width:100%;height:auto;display:block}
   .tip{margin-top:14px;background:var(--amber-l);border-left:5px solid var(--amber);border-radius:6px;padding:10px 12px;font-size:.95rem}
-  .back{display:inline-block;margin-bottom:10px;color:var(--amber);font-weight:700;text-decoration:none}
-  .back:hover{text-decoration:underline}
   .foot{margin-top:26px;color:var(--muted);font-size:.85rem}
   .vett{margin-top:24px}
   .vett h2{font-size:1.2rem;margin:0 0 8px}
   .vett ul{margin:0;padding:0;list-style:none;display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:8px}
   .vett li{border:1px solid var(--line);border-radius:8px;padding:8px 10px;background:#fff;font-size:.93rem}
   .vett li b{color:var(--amber)}
+  .screen.komp .rec,.screen.komp .tc,.screen.komp .phase{display:none}
+  .presets{display:flex;gap:8px;flex-wrap:wrap}
+  .chip{border:2px solid var(--amber);background:#fff;color:var(--ink);border-radius:999px;padding:7px 12px;font-weight:700;font-size:.92rem;cursor:pointer}
+  .chip[aria-pressed="true"]{background:var(--amber);color:#fff}
+  .chip:focus-visible,select:focus-visible{outline:3px solid #1b1b1b;outline-offset:2px}
+  .sl{display:flex;align-items:center;gap:10px;margin-top:10px}
+  .sl span{flex:none;width:150px;font-size:.92rem;font-weight:600}
+  .verdict{list-style:none;margin:8px 0 0;padding:0;display:grid;gap:6px}
+  .verdict li{display:flex;gap:8px;padding:6px 8px;border-radius:6px;background:#f7f4ee;font-size:.93rem}
+  .verdict .ic{font-weight:800;width:1.2em;flex:none;text-align:center}
+  .verdict .ok .ic{color:#2e7d32}.verdict .bad .ic{color:#c62828}.verdict .warn .ic{color:#b26a00}.verdict .info .ic{color:#455a64}
   @media(prefers-reduced-motion:reduce){.rec.on i{animation:none}}
 </style>
 </head>
 <body>
 <div class="wrap">
-  <a class="back" href="../index.html">← Til forsiden</a>
   <h1>Kamerateknikker – interaktiv guide</h1>
-  <p class="sub">VG2 Medieproduksjon · Velg en teknikk, trykk <b>Spill av</b>, eller dra i glidebryteren og styr kameraet selv.</p>
+  <p class="sub">VG2 Medieproduksjon · Velg en teknikk, trykk <b>Spill av</b>, eller dra i glidebryteren og styr kameraet selv. Under «Komponering» øver du på hvor personen skal stå i bildet.</p>
 
   <div class="tabs" role="tablist" aria-label="Velg kamerateknikk" id="tabs"></div>
 
@@ -76,18 +84,18 @@
             <clipPath id="clip"><rect width="640" height="360"/></clipPath>
           </defs>
           <g clip-path="url(#clip)">
-            <g id="L0"></g><g id="L1"></g><g id="L2"></g><g id="L3"></g>
+            <g id="LW"><g id="L0"></g><g id="L1"></g><g id="L2"></g><g id="L3"></g></g><g id="LC" style="display:none"></g>
           </g>
         </svg>
         <div class="rec" id="rec"><i></i>REC</div>
         <div class="tc" id="tc">00:00</div>
         <div class="phase" id="phaseLbl">Stå i ro</div>
         <svg class="grid3" id="grid3" viewBox="0 0 640 360" preserveAspectRatio="none">
-          <g stroke="rgba(255,255,255,.55)" stroke-width="1"><line x1="213.3" y1="0" x2="213.3" y2="360"/><line x1="426.7" y1="0" x2="426.7" y2="360"/><line x1="0" y1="120" x2="640" y2="120"/><line x1="0" y1="240" x2="640" y2="240"/></g>
+          <g stroke="rgba(255,255,255,.55)" stroke-width="1"><line x1="213.3" y1="0" x2="213.3" y2="360"/><line x1="426.7" y1="0" x2="426.7" y2="360"/><line x1="0" y1="120" x2="640" y2="120"/><line x1="0" y1="240" x2="640" y2="240"/></g><g fill="none" stroke="rgba(255,255,255,.85)" stroke-width="1.5"><circle cx="213.3" cy="120" r="6"/><circle cx="426.7" cy="120" r="6"/><circle cx="213.3" cy="240" r="6"/><circle cx="426.7" cy="240" r="6"/></g>
         </svg>
       </div>
 
-      <div class="controls">
+      <div class="controls" id="tlControls">
         <div class="row">
           <button class="btn" id="play">▶ Spill av</button>
           <button class="btn ghost" id="reset">Tilbake</button>
@@ -99,6 +107,19 @@
           <label class="chk">Fart
             <select id="speed" aria-label="Avspillingsfart">
               <option value="1">Normal</option><option value="0.5">Halv</option><option value="3">Rask (3×)</option>
+            </select>
+          </label>
+        </div>
+      </div>
+
+      <div class="controls" id="compControls" hidden>
+        <div class="presets" id="presets" role="group" aria-label="Eksempler på komponering"></div>
+        <div class="sl"><span>Plassering sideveis</span><input type="range" id="cx" min="40" max="600" value="213" aria-label="Plassering sideveis"></div>
+        <div class="sl"><span>Luft over hodet</span><input type="range" id="cy" min="30" max="300" value="120" aria-label="Luft over hodet"></div>
+        <div class="row" style="margin-top:10px">
+          <label class="chk">Personen ser mot
+            <select id="clook" aria-label="Blikkretning">
+              <option value="right">høyre</option><option value="center">rett frem</option><option value="left">venstre</option>
             </select>
           </label>
         </div>
@@ -122,6 +143,7 @@
       <li><b>Sakte og jevnt:</b> start og stopp mykt. Rykk og rusk ødelegger opptaket.</li>
       <li><b>Ha en grunn:</b> beveg kameraet bare når bevegelsen forteller noe.</li>
       <li><b>Stativ:</b> bruk stativ til pan og tilt, og lås alle akser du ikke skal bruke.</li>
+      <li><b>Komponering:</b> øynene på øvre tredjedelslinje, litt luft foran blikket, ikke for mye luft over hodet.</li>
       <li><b>Aksen:</b> hold kameraene på samme side av den usynlige linjen mellom personene.</li>
     </ul>
   </div>
@@ -216,9 +238,17 @@
       use:"Raskt komme nærmere eller vise mer, uten å flytte kameraet. Bruk med måte – ofte ser det billigere ut enn dolly.",
       tip:"Sammenlign med dolly: her holder alt forholdet til hverandre. Blomstene og fjellene vokser like mye.",
       cam(p){const k=1+1.2*p;return {cx:700, cy:540, s:[k,k,k,k]}}
+    },
+    komp: {
+      name:"Komponering (bildeutsnitt)",
+      what:"Hvordan du plasserer personen eller motivet i bildet: hvor mye luft det er over hodet, og hvor langt til venstre eller høyre personen står.",
+      how:"Tredjedelsregelen: del bildet i 3×3 ruter. Legg øynene på den øverste vannrette linjen, og la hodet stå på en av de to loddrette linjene. Gi mer luft foran blikket enn bak.",
+      use:"Intervju, portrett og reportasje. Sentrert fungerer for rolige og formelle bilder, for eksempel en nyhetsoppleser.",
+      tip:"Trykk på de fem knappene og se hva som skjer. Dra så i glidebryterne selv og se hvordan vurderingen endrer seg.",
+      cam(p){return {cx:0,cy:0,s:[1,1,1,1]}}
     }
   };
-  const order = ["pan","tilt","dolly","zoom"];
+  const order = ["pan","tilt","dolly","zoom","komp"];
   let mode = "pan";
 
   /* ---------- Tabs ---------- */
@@ -242,6 +272,7 @@
   function setT(v){ t=Math.max(0,Math.min(TOTAL,v)); render(); }
 
   function render(){
+    if(mode==="komp"){ renderComp(); return; }
     const c = T[mode].cam(progress());
     for(let i=0;i<4;i++){
       L[i].setAttribute("transform",`translate(320 180) scale(${c.s[i]}) translate(${-c.cx} ${-c.cy})`);
@@ -275,8 +306,8 @@
   document.addEventListener("keydown",e=>{
     if(e.target.tagName==="INPUT"||e.target.tagName==="SELECT") return;
     if(e.code==="Space"){e.preventDefault(); $("play").click();}
-    if(e.key==="ArrowRight"){const i=(order.indexOf(mode)+1)%4; tabs.children[i].click();}
-    if(e.key==="ArrowLeft"){const i=(order.indexOf(mode)+3)%4; tabs.children[i].click();}
+    if(e.key==="ArrowRight"){const i=(order.indexOf(mode)+1)%order.length; tabs.children[i].click();}
+    if(e.key==="ArrowLeft"){const i=(order.indexOf(mode)+order.length-1)%order.length; tabs.children[i].click();}
   });
 
   /* ---------- Top view diagram ---------- */
@@ -360,11 +391,82 @@
     $("info").innerHTML=`<h2>${d.name}</h2>
       <h3>Hva skjer?</h3><p>${d.what}</p>
       <h3>Hvordan ser det ut?</h3><p>${d.how}</p>
-      <h3>Bruk den til</h3><p>${d.use}</p>`;
+      <h3>Bruk den til</h3><p>${d.use}</p>${mode==="komp"?'<h3>Vurdering av bildet</h3><ul class="verdict" id="verdict" aria-live="polite"></ul>':''}`;
+    const komp = mode==="komp";
+    $("screen").classList.toggle("komp",komp);
+    $("LW").style.display = komp?"none":"";
+    $("LC").style.display = komp?"":"none";
+    $("tlControls").hidden = komp;
+    $("compControls").hidden = !komp;
+    document.querySelector(".topview").hidden = komp;
+    $("grid3").classList.toggle("on", komp || $("thirds").checked);
     $("tip").innerHTML="<b>Prøv selv:</b> "+d.tip;
     $("play").textContent="▶ Spill av";
     render();
   }
+
+  /* ---------- Komponering ---------- */
+  $("LC").innerHTML = `
+    <rect x="0" y="0" width="640" height="360" fill="#d8c9b4"/>
+    <rect x="0" y="262" width="640" height="98" fill="#bfae94"/>
+    <rect x="470" y="38" width="130" height="150" fill="#bcd9ee" stroke="#fff" stroke-width="5"/>
+    <line x1="535" y1="38" x2="535" y2="188" stroke="#fff" stroke-width="4"/>
+    <circle cx="70" cy="90" r="26" fill="#f4e3b8" opacity=".6"/><circle cx="118" cy="62" r="14" fill="#f4e3b8" opacity=".5"/><circle cx="30" cy="190" r="18" fill="#f4e3b8" opacity=".4"/>
+    <g id="pp">
+      <path d="M-120 140 C-120 96 -64 84 -16 82 L16 82 C64 84 120 96 120 140 L120 560 L-120 560 Z" fill="#2b6cb0"/>
+      <path d="M-16 82 L0 118 L16 82 Z" fill="#fff"/>
+      <rect x="-15" y="52" width="30" height="36" fill="#e3b88e"/>
+      <ellipse cx="-39" cy="14" rx="6" ry="11" fill="#e8b98f"/><ellipse cx="39" cy="14" rx="6" ry="11" fill="#e8b98f"/>
+      <ellipse cx="0" cy="12" rx="39" ry="49" fill="#f1c9a0"/>
+      <path d="M-41 6 C-46 -40 -20 -50 0 -50 C24 -50 46 -38 41 6 C34 -16 18 -24 0 -24 C-18 -24 -34 -16 -41 6 Z" fill="#3b2a20"/>
+      <ellipse cx="-15" cy="0" rx="7" ry="4.5" fill="#fff"/><ellipse cx="15" cy="0" rx="7" ry="4.5" fill="#fff"/>
+      <circle id="pL" cx="-15" cy="0.5" r="2.8" fill="#222"/><circle id="pR" cx="15" cy="0.5" r="2.8" fill="#222"/>
+      <path d="M-24 -9 q9 -5 18 0 M6 -9 q9 -5 18 0" stroke="#3b2a20" stroke-width="2.5" fill="none"/>
+      <path d="M0 6 q-4 12 -1 16 q4 2 6 0" stroke="#c99a74" stroke-width="2" fill="none"/>
+      <path d="M-12 32 q12 8 24 0" stroke="#a5523f" stroke-width="3" fill="none" stroke-linecap="round"/>
+    </g>`;
+  const C = {x:213, ey:120, look:"right", preset:"thirds"};
+  const PRE = {
+    thirds:{label:"Tredjedeler",       x:213, ey:120, look:"right"},
+    center:{label:"Sentrert",          x:320, ey:120, look:"center"},
+    air:   {label:"For mye luft",      x:213, ey:250, look:"right"},
+    tight: {label:"For lite luft",     x:213, ey:40,  look:"right"},
+    right: {label:"For langt til høyre", x:560, ey:120, look:"right"}
+  };
+  const presets = $("presets");
+  Object.keys(PRE).forEach(k=>{
+    const b=document.createElement("button"); b.className="chip"; b.dataset.k=k; b.textContent=PRE[k].label;
+    b.onclick=()=>{ Object.assign(C,PRE[k],{preset:k}); renderComp(); };
+    presets.appendChild(b);
+  });
+  $("cx").oninput=e=>{C.x=+e.target.value; C.preset=""; renderComp();};
+  $("cy").oninput=e=>{C.ey=+e.target.value; C.preset=""; renderComp();};
+  $("clook").onchange=e=>{C.look=e.target.value; C.preset=""; renderComp();};
+
+  function verdictItems(){
+    const out=[]; const {x,ey,look}=C;
+    if(ey>=100 && ey<=140) out.push(["ok","✓","Øynene ligger på øvre tredjedelslinje. God plassering av hodet."]);
+    else if(ey>150) out.push(["bad","✕","For mye luft over hodet. Personen virker å synke ned i bildet. Løft øynene mot øvre tredjedelslinje."]);
+    else if(ey<75) out.push(["bad","✕","For lite luft over hodet. Toppen av hodet er nesten klippet av."]);
+    else out.push(["warn","!","Nesten. Flytt øynene til øvre tredjedelslinje."]);
+    if(Math.abs(x-213.3)<=35 || Math.abs(x-426.7)<=35) out.push(["ok","✓","Hodet står på en loddrett tredjedelslinje."]);
+    else if(Math.abs(x-320)<=30) out.push(["info","i","Sentrert: rolig og formelt, men mindre dynamisk. Bra for nyhetsoppleser og portrett."]);
+    else if(x>520 || x<120) out.push(["bad","✕","For langt ut mot kanten. Personen virker presset ut av bildet."]);
+    else out.push(["warn","!","Mellom tredjedelslinjen og midten. Velg en linje, eller sentrer bevisst."]);
+    if(look==="right" && x>320 || look==="left" && x<320) out.push(["bad","✕","Personen ser ut av bildet. Gi mer luft foran blikket (blikkluft)."]);
+    else if(look!=="center") out.push(["ok","✓","God blikkluft: det er mer plass foran blikket enn bak."]);
+    return out;
+  }
+  function renderComp(){
+    $("pp").setAttribute("transform",`translate(${C.x} ${C.ey})`);
+    const off = C.look==="right"?4:(C.look==="left"?-4:0);
+    $("pL").setAttribute("cx",-15+off); $("pR").setAttribute("cx",15+off);
+    $("cx").value=C.x; $("cy").value=C.ey; $("clook").value=C.look;
+    [...presets.children].forEach(b=>b.setAttribute("aria-pressed",b.dataset.k===C.preset));
+    const v=$("verdict");
+    if(v) v.innerHTML=verdictItems().map(r=>`<li class="${r[0]}"><span class="ic" aria-hidden="true">${r[1]}</span><span>${r[2]}</span></li>`).join("");
+  }
+
   renderAll();
 })();
 </script>
