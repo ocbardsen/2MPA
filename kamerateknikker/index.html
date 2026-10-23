@@ -13,6 +13,9 @@
   .wrap{max-width:1000px;margin:0 auto;padding:20px 16px 48px}
   h1{font-size:1.7rem;margin:0 0 4px}
   .sub{color:var(--muted);margin:0 0 18px}
+  .back{display:inline-block;margin:0 0 14px;border:2px solid var(--amber);background:#fff;border-radius:8px;padding:6px 14px;font-weight:700;color:var(--ink);text-decoration:none}
+  .back:hover{background:var(--amber-l)}
+  .back:focus-visible{outline:3px solid #1b1b1b;outline-offset:2px}
   .tabs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}
   .tab{border:2px solid var(--amber);background:#fff;color:var(--ink);padding:9px 16px;border-radius:999px;font-size:1rem;font-weight:600;cursor:pointer}
   .tab[aria-selected="true"]{background:var(--amber);color:#fff}
@@ -68,6 +71,7 @@
 </head>
 <body>
 <div class="wrap">
+  <a class="back" href="../index.html">← Tilbake til hovedmenyen</a>
   <h1>Kamerateknikker – interaktiv guide</h1>
   <p class="sub">VG2 Medieproduksjon · Velg en teknikk, trykk <b>Spill av</b>, eller dra i glidebryteren og styr kameraet selv. Under «Komponering» øver du på hvor personen skal stå i bildet.</p>
 
