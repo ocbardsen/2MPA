@@ -1,0 +1,526 @@
+<!doctype html>
+<html lang="nb">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Markedsføringsloven og etikk – interaktiv presentasjon</title>
+<style>
+  :root{--amber:#C97A0C;--amber-l:#FFF3DF;--ink:#1b1b1b;--muted:#5b5b5b;--line:#e2d9c8;--bg:#fff;--ok:#1f7a45;--ok-l:#e3f4ea;--bad:#b3261e;--bad-l:#fbe6e4}
+  *{box-sizing:border-box}
+  html,body{height:100%}
+  body{margin:0;font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--ink);background:var(--bg);line-height:1.5;display:flex;flex-direction:column;font-size:18px}
+  button{font:inherit;cursor:pointer;color:inherit}
+  button:focus-visible,a:focus-visible,[tabindex]:focus-visible{outline:3px solid #1b1b1b;outline-offset:2px}
+
+  header.top{display:flex;align-items:center;gap:12px;padding:8px 18px;border-bottom:3px solid var(--amber);background:#fff}
+  header.top b{color:var(--amber);font-size:1.05rem}
+  header.top span{color:var(--muted);font-size:.95rem}
+  header.top .sp{flex:1}
+  .iconbtn{border:2px solid var(--amber);background:#fff;border-radius:8px;padding:6px 12px;font-weight:700;text-decoration:none;color:var(--ink)}
+
+  main{flex:1;overflow:auto}
+  .slide{display:none;max-width:1180px;margin:0 auto;padding:18px 22px 28px}
+  .slide.on{display:block}
+  .slide h1{font-size:2.3rem;margin:0 0 6px;line-height:1.15}
+  .slide h2{font-size:1.9rem;margin:0 0 4px;line-height:1.2}
+  .kicker{color:var(--amber);font-weight:800;letter-spacing:.08em;text-transform:uppercase;font-size:.85rem}
+  .lead{color:var(--muted);margin:0 0 14px;font-size:1.1rem}
+
+  .cols{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,1fr);gap:22px;align-items:start}
+  .cols.even{grid-template-columns:1fr 1fr}
+  @media(max-width:900px){.cols,.cols.even{grid-template-columns:1fr}}
+  .card{border:1px solid var(--line);border-radius:12px;padding:14px 18px;background:#fff}
+  .card h3{margin:0 0 6px;font-size:1.3rem;color:var(--amber)}
+  .card p{margin:0 0 8px}
+  .card ul{margin:0;padding-left:1.2em}
+  .card li{margin:4px 0}
+  .tip{margin-top:12px;background:var(--amber-l);border-left:6px solid var(--amber);border-radius:6px;padding:10px 14px}
+  .photo{width:100%;border-radius:12px;display:block;border:1px solid var(--line);aspect-ratio:4/3;object-fit:cover}
+  .btn{background:var(--amber);color:#fff;border:0;border-radius:10px;padding:11px 20px;font-weight:800;min-height:48px}
+  .btn.ghost{background:#fff;color:var(--ink);border:2px solid var(--amber)}
+  .btn[disabled]{opacity:.45;cursor:default}
+  .row{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+
+  /* tittel */
+  .hero{display:grid;grid-template-columns:1.1fr 1fr;gap:26px;align-items:center;min-height:62vh}
+  @media(max-width:900px){.hero{grid-template-columns:1fr}}
+  .hero h1{font-size:3.1rem}
+  .rec{display:inline-flex;align-items:center;gap:8px;font:700 .9rem/1 ui-monospace,monospace;letter-spacing:.08em}
+  .rec i{width:12px;height:12px;border-radius:50%;background:#e02424;display:inline-block;animation:bl 1.2s steps(2) infinite}
+  @keyframes bl{50%{opacity:.2}}
+  .tags{display:flex;gap:8px;flex-wrap:wrap;margin:14px 0 22px}
+  .tag{background:var(--amber-l);border:1px solid var(--line);border-radius:999px;padding:4px 12px;font-weight:700;font-size:.9rem}
+  .heroart{background:#1b1b1b;border-radius:14px;border:3px solid #222;padding:26px;color:#fff;border-bottom:8px solid var(--amber)}
+  .heroart .big{font-size:1.5rem;font-weight:800;line-height:1.25}
+  .heroart .tagline{margin-top:10px;color:#e6dccb}
+  .heroart .ann{display:inline-block;margin-top:16px;border:2px solid #fff;border-radius:6px;padding:2px 10px;font-weight:800;letter-spacing:.06em;font-size:.9rem}
+
+  /* tabs / kort som kan åpnes */
+  .tabs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
+  .tab{border:2px solid var(--line);background:#fff;border-radius:10px;padding:9px 14px;font-weight:700;min-height:46px}
+  .tab[aria-selected="true"]{border-color:var(--amber);background:var(--amber-l)}
+  .panel{border:1px solid var(--line);border-left:6px solid var(--amber);border-radius:10px;padding:14px 18px;background:#fff;min-height:150px}
+  .panel h3{margin:0 0 6px;font-size:1.35rem}
+  .ex{margin-top:10px;background:#f6f1e7;border-radius:8px;padding:8px 12px;font-style:italic}
+
+  /* øvelser */
+  .q{border:1px solid var(--line);border-radius:12px;padding:14px 18px;background:#fff;margin-bottom:12px}
+  .q .scen{font-size:1.15rem;font-weight:600;margin:0 0 10px}
+  .opts{display:flex;gap:8px;flex-wrap:wrap}
+  .opt{border:2px solid var(--line);background:#fff;border-radius:10px;padding:9px 14px;font-weight:700;min-height:46px}
+  .opt:hover:not([disabled]){border-color:var(--amber)}
+  .opt.right{border-color:var(--ok);background:var(--ok-l)}
+  .opt.wrong{border-color:var(--bad);background:var(--bad-l)}
+  .fb{margin-top:10px;font-size:1rem;display:none;border-radius:8px;padding:8px 12px}
+  .fb.show{display:block}
+  .fb.good{background:var(--ok-l)}
+  .fb.bad{background:var(--bad-l)}
+  .score{font-weight:800;font-size:1.1rem;margin:8px 0}
+  .progress{height:8px;background:var(--line);border-radius:99px;overflow:hidden;margin:6px 0 14px}
+  .progress i{display:block;height:100%;width:0;background:var(--amber);transition:width .25s}
+
+  /* mock innlegg */
+  .phone{max-width:380px;margin:0 auto;border:3px solid #222;border-radius:22px;background:#fff;overflow:hidden}
+  .phone .bar{display:flex;align-items:center;gap:10px;padding:10px 12px}
+  .avatar{width:38px;height:38px;border-radius:50%;background:linear-gradient(135deg,#C97A0C,#e0b15a)}
+  .phone .name{font-weight:800;line-height:1.1}
+  .phone .sub{font-size:.8rem;color:var(--muted)}
+  .phone .sub.show{background:var(--amber);color:#fff;font-weight:800;border-radius:4px;padding:1px 7px;display:inline-block;margin-top:2px}
+  .phone .img{height:190px;background:linear-gradient(135deg,#f5d9a5,#e8b4a0);display:flex;align-items:center;justify-content:center;font-size:3rem}
+  .phone .cap{padding:10px 12px;font-size:.95rem}
+  .switch{display:flex;justify-content:center;gap:8px;margin:12px 0}
+
+  /* nav */
+  nav.bottom{display:flex;align-items:center;gap:12px;padding:8px 18px;border-top:1px solid var(--line);background:#fff}
+  .dots{display:flex;gap:6px;flex:1;justify-content:center;flex-wrap:wrap}
+  .dot{width:14px;height:14px;border-radius:50%;border:2px solid var(--amber);background:#fff;padding:0}
+  .dot.on{background:var(--amber)}
+  .count{color:var(--muted);font-size:.9rem;min-width:70px;text-align:center}
+  @media(prefers-reduced-motion:reduce){.rec i{animation:none}.progress i{transition:none}}
+  @media(max-width:560px){.hero h1{font-size:2.2rem}.slide h2{font-size:1.5rem}}
+</style>
+</head>
+<body>
+
+<header class="top">
+  <b>2MPA</b><span>Markedsføringsloven og etikk</span><span class="sp"></span>
+  <a class="iconbtn" href="../index.html">← Til oversikten</a>
+</header>
+
+<main id="main">
+
+<!-- 1 -->
+<section class="slide" data-title="Start">
+  <div class="hero">
+    <div>
+      <span class="rec"><i></i>REKLAME</span>
+      <h1>Markedsføringsloven og etikk</h1>
+      <p class="lead">Reklame, regler og etisk kommunikasjon</p>
+      <div class="tags"><span class="tag">Lover</span><span class="tag">Merking</span><span class="tag">Etikk</span><span class="tag">Øvelser</span><span class="tag">Quiz</span></div>
+      <button class="btn" data-go="next">Start →</button>
+      <p class="lead" style="margin-top:14px;font-size:.95rem">Bruk piltastene eller knappene nederst for å bla. Trykk på kortene og svar på oppgavene underveis.</p>
+    </div>
+    <div class="heroart" aria-hidden="true">
+      <div class="big">«Kjøp nå! Bare i dag!»</div>
+      <div class="tagline">Men hva er egentlig lov? Og hva er riktig?</div>
+      <span class="ann">ANNONSE</span>
+    </div>
+  </div>
+</section>
+
+<!-- 2 -->
+<section class="slide" data-title="Hva er loven?">
+  <div class="kicker">Lovverk</div>
+  <h2>Hva er markedsføringsloven?</h2>
+  <p class="lead">Gjelder all reklamevirksomhet i Norge.</p>
+  <div class="cols">
+    <div>
+      <div class="card" style="margin-bottom:12px">
+        <p>Loven regulerer hvordan næringsdrivende markedsfører varer og tjenester overfor forbrukere.</p>
+        <p><b>Formålet:</b> markedsføring skal være redelig og ikke skade forbrukerne.</p>
+      </div>
+      <div class="tabs" role="tablist" aria-label="Oppfølging av loven" id="t2"></div>
+      <div class="panel" id="p2" aria-live="polite"></div>
+    </div>
+    <img class="photo" src="img/lov.jpg" alt="Norsk kystlandskap ved fjord i solnedgang">
+  </div>
+</section>
+
+<!-- 3 -->
+<section class="slide" data-title="Forbudte produkter">
+  <div class="kicker">Lovverk</div>
+  <h2>Forbudte produkter</h2>
+  <p class="lead">Noen produkter kan du ikke reklamere for. Trykk for å se hvilken lov som gjelder.</p>
+  <div class="cols">
+    <div>
+      <div class="tabs" role="tablist" aria-label="Forbudte produkter" id="t3"></div>
+      <div class="panel" id="p3" aria-live="polite"></div>
+      <div class="tip"><b>Husk:</b> Hvert forbud har sin egen lov. Markedsføringsloven er bare én av dem.</div>
+    </div>
+    <img class="photo" src="img/forbud.jpg" alt="Førstehjelpsutstyr, medisiner og stetoskop på mørkt trebord">
+  </div>
+</section>
+
+<!-- 4 -->
+<section class="slide" data-title="Forbudte reklametyper">
+  <div class="kicker">Lovverk</div>
+  <h2>Fire typer forbudt reklame</h2>
+  <p class="lead">Velg en type for å se hva den betyr og et eksempel.</p>
+  <div class="tabs" role="tablist" aria-label="Typer reklame" id="t4"></div>
+  <div class="panel" id="p4" aria-live="polite"></div>
+</section>
+
+<!-- 5 -->
+<section class="slide" data-title="Øvelse: hvilken type?">
+  <div class="kicker">Øvelse</div>
+  <h2>Hvilken type reklame er dette?</h2>
+  <p class="lead">Velg riktig kategori for hver reklame. Du får svar med en gang.</p>
+  <div class="score" id="s5"></div>
+  <div id="q5"></div>
+</section>
+
+<!-- 6 -->
+<section class="slide" data-title="Kringkastingsloven">
+  <div class="kicker">Lovverk</div>
+  <h2>Kringkastingsloven</h2>
+  <div class="cols">
+    <div>
+      <div class="card" style="margin-bottom:12px">
+        <p>Kringkastingsloven regulerer markedsføring i norskbasert radio, TV og audiovisuelle bestillingstjenester.</p>
+        <p>For eksempel <b>P4</b>, <b>VGTV</b> og <b>TV 2 Play</b>.</p>
+        <p>Den setter grenser for både kommersiell og ideologisk reklame, sponsing og produktplassering.</p>
+      </div>
+      <div class="score" style="font-size:1rem">Stemmer det? Test deg selv:</div>
+      <div id="q6"></div>
+    </div>
+    <img class="photo" src="img/tv.jpg" alt="Gammel gul TV med antenner mot turkis vegg">
+  </div>
+</section>
+
+<!-- 7 -->
+<section class="slide" data-title="Merking av reklame">
+  <div class="kicker">Lovverk</div>
+  <h2>Merking av reklame</h2>
+  <p class="lead">Reklame skal alltid merkes hvis det er tvil om det kan oppfattes som redaksjonelt stoff.</p>
+  <div class="cols even">
+    <div>
+      <div class="card" style="margin-bottom:12px">
+        <ul>
+          <li>Vær varsom-plakaten skiller mellom redaksjon og reklame.</li>
+          <li>Betalt redaksjonelt innhold merkes «Annonse» eller «Betalt samarbeid».</li>
+        </ul>
+      </div>
+      <div class="tip"><b>Markedsføringsloven § 3:</b> «Markedsføring skal utformes og presenteres slik at den tydelig framstår som markedsføring.»</div>
+      <img class="photo" style="margin-top:14px;max-height:230px" src="img/merking.jpg" alt="Fargerike taleboble-lapper på fargede ark">
+    </div>
+    <div>
+      <div class="phone">
+        <div class="bar"><div class="avatar"></div><div><div class="name">trine.tester</div><div class="sub" id="sub7">Sponset</div></div></div>
+        <div class="img" aria-hidden="true">🧴</div>
+        <div class="cap" id="cap7"></div>
+      </div>
+      <div class="switch">
+        <button class="btn ghost" id="m0">Uten merking</button>
+        <button class="btn" id="m1">Med merking</button>
+      </div>
+      <p class="lead" id="note7" style="text-align:center;font-size:1rem" aria-live="polite"></p>
+    </div>
+  </div>
+</section>
+
+<!-- 8 -->
+<section class="slide" data-title="Medieetikk">
+  <div class="kicker">Etikk</div>
+  <h2>Medieetikk og etisk mediekommunikasjon</h2>
+  <div class="cols">
+    <div>
+      <div class="card" style="margin-bottom:12px">
+        <h3>Etikk</h3>
+        <p>Refleksjon over hva som er rett og galt, eller hva som er gode og dårlige handlinger.</p>
+      </div>
+      <div class="card" style="margin-bottom:12px">
+        <h3>Medieetikk</h3>
+        <p>Etiske problemstillinger som angår alle som bruker medier i kommunikasjon med andre, eller som publiserer medieinnhold i ulike kanaler.</p>
+      </div>
+      <div class="card">
+        <h3>Etikk i kommunikasjon</h3>
+        <ul>
+          <li>Respekt og toleranse er viktig i alle former for kommunikasjon.</li>
+          <li>Etisk kommunikasjon handler om å snakke sant og ikke manipulere med falsk informasjon, eller ved å tilbakeholde informasjon.</li>
+        </ul>
+      </div>
+    </div>
+    <div>
+      <img class="photo" src="img/etikk.jpg" alt="Svart-hvitt bilde av en person som går opp en trapp mot lyset">
+      <div class="tip"><b>Tenk selv:</b> Hvordan oppfattes jeg av de menneskene jeg omgås og kommuniserer med?
+        <div style="margin-top:8px"><button class="btn ghost" id="think8">Skjul/vis spørsmål til samtale</button></div>
+        <ul id="th8" style="display:none;margin:8px 0 0">
+          <li>Når har du sist følt at noen ikke var ærlige mot deg?</li>
+          <li>Er det alltid galt å tilbakeholde informasjon?</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 9 -->
+<section class="slide" data-title="Etikk i sosiale medier">
+  <div class="kicker">Etikk</div>
+  <h2>Etikk i sosiale medier</h2>
+  <p class="lead">Fire verdier. Velg en og se hva den betyr i praksis.</p>
+  <div class="tabs" role="tablist" aria-label="Verdier" id="t9"></div>
+  <div class="panel" id="p9" aria-live="polite"></div>
+</section>
+
+<!-- 10 -->
+<section class="slide" data-title="Lovlig eller etisk?">
+  <div class="kicker">Øvelse</div>
+  <h2>Lovlig, etisk eller begge deler?</h2>
+  <p class="lead">Etikk går lenger enn loven. Noe kan være lovlig, men likevel uetisk.</p>
+  <div class="score" id="s10"></div>
+  <div id="q10"></div>
+</section>
+
+<!-- 11 -->
+<section class="slide" data-title="Quiz">
+  <div class="kicker">Quiz</div>
+  <h2>Hva har du lært?</h2>
+  <div class="progress" aria-hidden="true"><i id="pr11"></i></div>
+  <div id="quiz"></div>
+</section>
+
+<!-- 12 -->
+<section class="slide" data-title="Oppsummering">
+  <div class="kicker">Oppsummering</div>
+  <h2>Oppsummering</h2>
+  <div class="cols even">
+    <div>
+      <div class="card" style="margin-bottom:12px"><h3>Loven setter grenser</h3><p>Villedende, aggressiv, kjønnsdiskriminerende og skjult reklame er forbudt.</p></div>
+      <div class="card" style="margin-bottom:12px"><h3>Reklame skal merkes</h3><p>Den må tydelig framstå som markedsføring.</p></div>
+      <div class="card"><h3>Etikk går lenger enn loven</h3><p>Noe kan være lovlig, men likevel uetisk.</p></div>
+    </div>
+    <div>
+      <div class="tip" style="margin-top:0;font-size:1.25rem"><b>Til diskusjon</b><br>Hvor går grensen mellom lovlig og etisk riktig reklame i sosiale medier?</div>
+      <div class="row" style="margin-top:14px">
+        <button class="btn ghost" data-go="0">Tilbake til start</button>
+        <button class="btn" data-go="next">Kilder →</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 13 -->
+<section class="slide" data-title="Kilder">
+  <div class="kicker">Kilder</div>
+  <h2>Kilder</h2>
+  <div class="card">
+    <ul>
+      <li>Markedsføringsloven, kringkastingsloven og alkoholloven: <a href="https://lovdata.no" target="_blank" rel="noopener">lovdata.no</a></li>
+      <li>Forbrukertilsynet: <a href="https://forbrukertilsynet.no" target="_blank" rel="noopener">forbrukertilsynet.no</a></li>
+      <li>Medietilsynet, regler for reklame på tv og radio: <a href="https://medietilsynet.no" target="_blank" rel="noopener">medietilsynet.no</a></li>
+      <li>Vær varsom-plakaten: <a href="https://presse.no" target="_blank" rel="noopener">presse.no</a></li>
+      <li>NDLA, lover og regler i markedsføring: <a href="https://ndla.no" target="_blank" rel="noopener">ndla.no</a></li>
+    </ul>
+  </div>
+</section>
+
+</main>
+
+<nav class="bottom" aria-label="Navigasjon">
+  <button class="btn ghost" id="prev">← Forrige</button>
+  <div class="dots" id="dots"></div>
+  <span class="count" id="count"></span>
+  <button class="btn" id="next">Neste →</button>
+</nav>
+
+<script>
+(function(){
+  var slides=[].slice.call(document.querySelectorAll(".slide"));
+  var cur=0;
+  function $(id){return document.getElementById(id);}
+  function el(tag,cls,txt){var e=document.createElement(tag);if(cls)e.className=cls;if(txt!=null)e.textContent=txt;return e;}
+
+  /* ---------- navigasjon ---------- */
+  var dots=$("dots");
+  slides.forEach(function(s,i){
+    var d=el("button","dot");d.setAttribute("aria-label","Gå til: "+s.dataset.title);d.title=s.dataset.title;
+    d.onclick=function(){show(i);};dots.appendChild(d);
+  });
+  function show(i){
+    cur=Math.max(0,Math.min(slides.length-1,i));
+    slides.forEach(function(s,k){s.classList.toggle("on",k===cur);});
+    [].forEach.call(dots.children,function(d,k){d.classList.toggle("on",k===cur);});
+    $("count").textContent=(cur+1)+" / "+slides.length;
+    $("prev").disabled=cur===0;$("next").disabled=cur===slides.length-1;
+    $("main").scrollTop=0;
+    try{history.replaceState(null,"","#"+(cur+1));}catch(e){}
+  }
+  $("prev").onclick=function(){show(cur-1);};
+  $("next").onclick=function(){show(cur+1);};
+  [].forEach.call(document.querySelectorAll("[data-go]"),function(b){
+    b.onclick=function(){var g=b.dataset.go;show(g==="next"?cur+1:parseInt(g,10));};
+  });
+  document.addEventListener("keydown",function(e){
+    if(e.target&&/INPUT|TEXTAREA|SELECT/.test(e.target.tagName))return;
+    if(e.key==="ArrowRight"||e.key==="PageDown"){show(cur+1);}
+    else if(e.key==="ArrowLeft"||e.key==="PageUp"){show(cur-1);}
+    else if(e.key==="Home"){show(0);}
+    else if(e.key==="End"){show(slides.length-1);}
+  });
+
+  /* ---------- faner ---------- */
+  function tabs(tabsId,panelId,items){
+    var t=$(tabsId),p=$(panelId),btns=[];
+    items.forEach(function(it,i){
+      var b=el("button","tab",it.t);b.setAttribute("role","tab");b.setAttribute("aria-selected","false");
+      b.onclick=function(){sel(i);};t.appendChild(b);btns.push(b);
+    });
+    function sel(i){
+      btns.forEach(function(b,k){b.setAttribute("aria-selected",k===i?"true":"false");});
+      p.innerHTML="";
+      var it=items[i];
+      p.appendChild(el("h3",null,it.h||it.t));
+      it.body.forEach(function(x){p.appendChild(el("p",null,x));});
+      if(it.ex){var ex=el("div","ex",it.ex);p.appendChild(ex);}
+    }
+    sel(0);
+  }
+
+  tabs("t2","p2",[
+    {t:"Forbrukertilsynet",h:"Forbrukertilsynet følger opp",body:["Følger opp brudd på markedsføringsloven og kan gripe inn når reklame bryter reglene."]},
+    {t:"Markedsrådet",h:"Markedsrådet behandler prinsipielle saker",body:["Prinsipielle saker, altså saker som kan sette en standard for hva som er lov, behandles av Markedsrådet."]},
+    {t:"Hva skjer ved brudd?",h:"Konsekvenser",body:["Brudd kan gi forbud og overtredelsesgebyr."]}
+  ]);
+
+  tabs("t3","p3",[
+    {t:"Alkohol og tobakk",h:"Alkohol og tobakk",body:["Forbudt å reklamere for etter alkoholloven og tobakksskadeloven."]},
+    {t:"Reseptpliktige legemidler",h:"Reseptpliktige legemidler",body:["Forbudt etter legemiddelforskriften."]},
+    {t:"Våpen",h:"Våpen og modeller av våpen",body:["Forbudt etter markedsføringsloven."]}
+  ]);
+
+  tabs("t4","p4",[
+    {t:"Villedende",h:"Villedende reklame",body:["Gir uriktige eller mangelfulle opplysninger som kan påvirke kjøpsvalget."],ex:"Eksempel: «Garantert vekttap på en uke», uten at det stemmer."},
+    {t:"Aggressiv",h:"Aggressiv reklame",body:["Presser forbrukeren til å kjøpe."],ex:"Eksempel: Press og mas som gjør at du føler at du må kjøpe nå."},
+    {t:"Kjønnsdiskriminerende",h:"Kjønnsdiskriminerende reklame",body:["Fremstiller kvinner eller menn nedsettende eller støtende."],ex:"Eksempel: Reklame der ett kjønn bare er pynt eller blir latterliggjort."},
+    {t:"Skjult",h:"Skjult reklame",body:["Reklame som ikke er tydelig merket som reklame."],ex:"Eksempel: Et betalt innlegg som ser ut som en vanlig, personlig anbefaling."}
+  ]);
+
+  tabs("t9","p9",[
+    {t:"Åpenhet",body:["Vær ærlig om hvem du er, og hvorfor du deler noe.","Ikke late som om reklame er personlig mening."]},
+    {t:"Ansvar",body:["Tenk på hvordan innholdet ditt påvirker andre, særlig unge brukere.","Unngå å fremme kroppspress, usunne idealer eller urealistiske livsstiler."]},
+    {t:"Troverdighet",body:["Ikke anbefal produkter du ikke kan stå inne for.","Bygg tillit ved å være konsekvent og ekte."]},
+    {t:"Respekt",body:["Unngå krenkende språk, mobbing, diskriminering eller trakassering.","Respekter personvern: ikke del andres bilder uten samtykke."]}
+  ]);
+
+  /* ---------- flervalgs-motor ---------- */
+  function quizBlock(host,scoreEl,items,opts,label){
+    var done=0,pts=0;
+    items.forEach(function(it){
+      var q=el("div","q");
+      q.appendChild(el("p","scen",it.q));
+      var o=el("div","opts"),fb=el("div","fb");fb.setAttribute("aria-live","polite");
+      var answered=false;
+      (it.o||opts).forEach(function(name,idx){
+        var b=el("button","opt",name);
+        b.onclick=function(){
+          if(answered)return;answered=true;
+          var ok=idx===it.a;
+          [].forEach.call(o.children,function(x,k){x.disabled=true;if(k===it.a)x.classList.add("right");});
+          if(!ok)b.classList.add("wrong");
+          fb.className="fb show "+(ok?"good":"bad");
+          fb.textContent=(ok?"Riktig! ":"Ikke helt. ")+it.f;
+          done++;if(ok)pts++;
+          scoreEl.textContent="Poeng: "+pts+" av "+items.length+(done===items.length?" – ferdig!":"");
+        };
+        o.appendChild(b);
+      });
+      q.appendChild(o);q.appendChild(fb);host.appendChild(q);
+    });
+    scoreEl.textContent="Poeng: 0 av "+items.length;
+  }
+
+  var types=["Villedende","Aggressiv","Kjønnsdiskriminerende","Skjult","Lovlig"];
+  quizBlock($("q5"),$("s5"),[
+    {q:"«Garantert 10 kilo ned på en uke!» sier annonsen for et kosttilskudd, uten dokumentasjon.",a:0,f:"Uriktige eller udokumenterte opplysninger som kan påvirke kjøpsvalget er villedende."},
+    {q:"En nettbutikk sender påminnelser hver time og skriver at du «mister alt for alltid» hvis du ikke kjøper nå.",a:1,f:"Reklamen presser forbrukeren til å kjøpe, og det er aggressiv markedsføring."},
+    {q:"En influencer viser fram en leppestift som «favoritten min». Hun har fått den betalt, men det står ingenting om det.",a:3,f:"Betalt innhold som ikke er tydelig merket som reklame er skjult reklame."},
+    {q:"I en reklame blir menn framstilt som hjelpeløse tullinger som ikke klarer å ta vare på barn.",a:2,f:"Når kvinner eller menn framstilles nedsettende eller støtende, er det kjønnsdiskriminerende."},
+    {q:"Prisen i bildet er 199 kr, men i liten skrift står det at du må binde deg i 24 måneder og i praksis betale mye mer.",a:0,f:"Mangelfulle opplysninger som kan påvirke kjøpsvalget gjør reklamen villedende."},
+    {q:"Et lokalt bakeri legger ut et innlegg merket «Annonse» med riktige priser og åpningstider.",a:4,f:"Tydelig merket og korrekt. Her er det ikke noe å utsette."}
+  ],types);
+
+  quizBlock($("q6"),el("div"),[
+    {q:"Kringkastingsloven gjelder også audiovisuelle bestillingstjenester som TV 2 Play.",o:["Stemmer","Stemmer ikke"],a:0,f:"Loven dekker norskbasert radio, TV og bestillingstjenester."},
+    {q:"På TV kan man reklamere for politiske budskap, så lenge man betaler.",o:["Stemmer","Stemmer ikke"],a:1,f:"På TV skal det for eksempel ikke reklameres for livssyn eller politiske budskap."}
+  ],["Stemmer","Stemmer ikke"]);
+
+  quizBlock($("q10"),$("s10"),[
+    {q:"En influencer merker innlegget «Betalt samarbeid», men sier at produktet er «helt genialt» selv om hun aldri har brukt det.",o:["Ulovlig","Lovlig og etisk","Lovlig, men uetisk"],a:2,f:"Merkingen er på plass, men hun anbefaler noe hun ikke kan stå inne for. Det svikter troverdigheten."},
+    {q:"Et bakeri legger ut et innlegg merket «Annonse» med riktige priser og åpningstider.",o:["Ulovlig","Lovlig og etisk","Lovlig, men uetisk"],a:1,f:"Tydelig merket, ærlig og ryddig."},
+    {q:"En youtuber gir ut en betalt anbefaling som en vanlig personlig mening, uten merking.",o:["Ulovlig","Lovlig og etisk","Lovlig, men uetisk"],a:0,f:"Dette er skjult reklame. Det bryter loven, og er uetisk fordi det mangler åpenhet."},
+    {q:"En annonsør bruker et bilde av en medelev i en reklamevideo uten å spørre.",o:["Ulovlig","Lovlig og etisk","Lovlig, men uetisk"],a:2,f:"Her kommer personvern og samtykke inn. Uansett jus er det uetisk å dele andres bilder uten samtykke."}
+  ],["Ulovlig","Lovlig og etisk","Lovlig, men uetisk"]);
+
+  /* ---------- merking-demo ---------- */
+  var cap7=$("cap7"),sub7=$("sub7"),note7=$("note7");
+  function mark(on){
+    sub7.style.display=on?"inline-block":"none";
+    sub7.className="sub"+(on?" show":"");
+    sub7.textContent=on?"Betalt samarbeid":"";
+    cap7.textContent=on?"Betalt samarbeid med HudGlød: Jeg har testet den nye dagkremen i to uker. Dette synes jeg!":"Har brukt denne dagkremen hver dag nå. Helt perfekt, anbefales!";
+    note7.textContent=on?"Tydelig merket. Seeren vet at dette er markedsføring.":"Ingen merking. Er dette en personlig mening eller betalt reklame? Seeren kan ikke vite det.";
+    $("m0").className="btn"+(on?" ghost":"");$("m1").className="btn"+(on?"":" ghost");
+  }
+  $("m0").onclick=function(){mark(false);};$("m1").onclick=function(){mark(true);};
+  mark(false);
+
+  $("think8").onclick=function(){var u=$("th8");u.style.display=u.style.display==="none"?"block":"none";};
+
+  /* ---------- sluttquiz ---------- */
+  var Q=[
+    {q:"Hva er formålet med markedsføringsloven?",o:["At reklame skal være så effektiv som mulig","At markedsføring skal være redelig og ikke skade forbrukerne","At bare store bedrifter får reklamere"],a:1,f:"Markedsføring skal være redelig og ikke skade forbrukerne."},
+    {q:"Hvem behandler prinsipielle saker?",o:["Markedsrådet","Forbrukertilsynet","Medietilsynet"],a:0,f:"Forbrukertilsynet følger opp brudd, og Markedsrådet behandler prinsipielle saker."},
+    {q:"Hvilken lov forbyr reklame for reseptpliktige legemidler?",o:["Alkoholloven","Legemiddelforskriften","Tobakksskadeloven"],a:1,f:"Reseptpliktige legemidler er forbudt etter legemiddelforskriften."},
+    {q:"Hvilken lov regulerer markedsføring i P4 og TV 2 Play?",o:["Kringkastingsloven","Vær varsom-plakaten","Alkoholloven"],a:0,f:"Kringkastingsloven regulerer radio, TV og audiovisuelle bestillingstjenester."},
+    {q:"Hva skal betalt redaksjonelt innhold merkes med?",o:["«Nyhet» eller «Tips»","«Annonse» eller «Betalt samarbeid»","Det trengs ikke merking"],a:1,f:"Betalt redaksjonelt innhold merkes «Annonse» eller «Betalt samarbeid»."},
+    {q:"Hva betyr det at etikk går lenger enn loven?",o:["Alt som er lovlig er også etisk riktig","Noe kan være lovlig, men likevel uetisk","Etikk er det samme som lov"],a:1,f:"Noe kan være lovlig, men likevel uetisk."}
+  ];
+  var qi=0,qp=0,host=$("quiz");
+  function renderQ(){
+    host.innerHTML="";
+    $("pr11").style.width=(qi/Q.length*100)+"%";
+    if(qi>=Q.length){
+      var c=el("div","card");
+      c.appendChild(el("h3",null,"Ferdig! "+qp+" av "+Q.length+" riktige"));
+      c.appendChild(el("p",null,qp===Q.length?"Full pott!":qp>=4?"Bra jobba! Se gjennom de du bommet på.":"Gå gjennom presentasjonen en gang til, så sitter det."));
+      var b=el("button","btn","Ta quizen på nytt");b.onclick=function(){qi=0;qp=0;renderQ();};
+      c.appendChild(b);host.appendChild(c);return;
+    }
+    var it=Q[qi],q=el("div","q");
+    q.appendChild(el("div","kicker","Spørsmål "+(qi+1)+" av "+Q.length));
+    q.appendChild(el("p","scen",it.q));
+    var o=el("div","opts"),fb=el("div","fb");fb.setAttribute("aria-live","polite");
+    var nx=el("button","btn","Neste →");nx.style.display="none";nx.style.marginTop="12px";
+    var ans=false;
+    it.o.forEach(function(name,idx){
+      var b=el("button","opt",name);
+      b.onclick=function(){
+        if(ans)return;ans=true;var ok=idx===it.a;
+        [].forEach.call(o.children,function(x,k){x.disabled=true;if(k===it.a)x.classList.add("right");});
+        if(!ok)b.classList.add("wrong"); else qp++;
+        fb.className="fb show "+(ok?"good":"bad");fb.textContent=(ok?"Riktig! ":"Ikke helt. ")+it.f;
+        nx.textContent=qi===Q.length-1?"Se resultat →":"Neste →";nx.style.display="inline-block";
+      };
+      o.appendChild(b);
+    });
+    nx.onclick=function(){qi++;renderQ();};
+    q.appendChild(o);q.appendChild(fb);q.appendChild(nx);host.appendChild(q);
+  }
+  renderQ();
+
+  var start=parseInt((location.hash||"").replace("#",""),10);
+  show(start>=1&&start<=slides.length?start-1:0);
+})();
+</script>
+</body>
+</html>
